@@ -1,0 +1,24 @@
+# Install: sudo cp deploy/buildingculture-api.service.example /etc/systemd/system/buildingculture-api.service
+# Edit User, WorkingDirectory, and EnvironmentFile paths.
+# sudo systemctl daemon-reload && sudo systemctl enable --now buildingculture-api
+
+[Unit]
+Description=Onyx Stride / Building Culture Hono API
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/buildingculture/app
+Environment=NODE_ENV=production
+EnvironmentFile=-/var/www/buildingculture/app/.env
+ExecStart=/usr/bin/npm run start
+Restart=on-failure
+RestartSec=5
+
+# Hardening (optional; adjust if something breaks)
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

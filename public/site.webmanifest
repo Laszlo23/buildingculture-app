@@ -1,0 +1,37 @@
+{
+  "name": "Onchain Savings Club",
+  "short_name": "Onchain Club",
+  "description": "DAO-governed savings, vault, and strategy transparency on Base.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0a0f0d",
+  "theme_color": "#0a0f0d",
+  "icons": [
+    {
+      "src": "/favicon-16.png",
+      "sizes": "16x16",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon-32.png",
+      "sizes": "32x32",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo-icon-crop.png",
+      "sizes": "438x438",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

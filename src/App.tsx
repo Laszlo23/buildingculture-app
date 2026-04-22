@@ -1,0 +1,58 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { WagmiProvider } from "wagmi";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { AppShell } from "@/components/layout/AppShell";
+import { wagmiConfig } from "@/config/wagmi";
+import Index from "./pages/Index.tsx";
+import NotFound from "./pages/NotFound.tsx";
+import { VaultPage } from "./pages/VaultPage";
+import { StrategiesPage } from "./pages/StrategiesPage";
+import { StrategyDetailPage } from "./pages/StrategyDetailPage";
+import { ReservesPage } from "./pages/ReservesPage";
+import { PortfolioPage } from "./pages/PortfolioPage";
+import { AcademyPage } from "./pages/AcademyPage";
+import { DAOPage } from "./pages/DAOPage";
+import { CommunityPage } from "./pages/CommunityPage";
+import { MembershipPage } from "./pages/MembershipPage";
+import { LearningRoutePage } from "./pages/LearningRoutePage";
+import { TransparencyPage } from "./pages/TransparencyPage";
+import { ProfilePage } from "./pages/ProfilePage";
+
+const queryClient = new QueryClient();
+
+const wrap = (node: React.ReactNode) => <AppShell>{node}</AppShell>;
+
+const App = () => (
+  <WagmiProvider config={wagmiConfig}>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/vault" element={wrap(<VaultPage />)} />
+            <Route path="/strategies" element={wrap(<StrategiesPage />)} />
+            <Route path="/strategies/:strategyId" element={wrap(<StrategyDetailPage />)} />
+            <Route path="/reserves" element={wrap(<ReservesPage />)} />
+            <Route path="/portfolio" element={wrap(<PortfolioPage />)} />
+            <Route path="/transparency" element={wrap(<TransparencyPage />)} />
+            <Route path="/academy" element={wrap(<AcademyPage />)} />
+            <Route path="/academy/:routeId" element={wrap(<LearningRoutePage />)} />
+            <Route path="/dao" element={wrap(<DAOPage />)} />
+            <Route path="/community" element={wrap(<CommunityPage />)} />
+            <Route path="/membership" element={wrap(<MembershipPage />)} />
+            <Route path="/profile" element={wrap(<ProfilePage />)} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </WagmiProvider>
+);
+
+export default App;
