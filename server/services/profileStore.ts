@@ -17,6 +17,12 @@ export type MemberProfile = {
   bio: string;
   socials: Socials;
   updatedAt: string;
+  /** When false, public investor page and leaderboards hide this wallet. Default public. */
+  publicWealthProfile?: boolean;
+  /** Short label for share cards (max 32 chars). */
+  wealthDisplayName?: string;
+  /** First time we recorded an on-chain vault snapshot for this address (ISO). */
+  firstVaultInteractionAt?: string;
 };
 
 type Book = Record<string, MemberProfile>;
@@ -45,16 +51,27 @@ const emptyProfile = (): MemberProfile => ({
   bio: "",
   socials: {},
   updatedAt: new Date().toISOString(),
+  publicWealthProfile: true,
 });
 
 export function getProfile(address: `0x${string}`): MemberProfile {
   const book = readAll();
-  return book[norm(address)] ?? emptyProfile();
+  const p = book[norm(address)] ?? emptyProfile();
+  return {
+    ...p,
+    publicWealthProfile: p.publicWealthProfile !== false,
+  };
 }
 
 export function putProfile(
   address: `0x${string}`,
-  partial: { bio?: string; socials?: Partial<Socials> },
+  partial: {
+    bio?: string;
+    socials?: Partial<Socials>;
+    publicWealthProfile?: boolean;
+    wealthDisplayName?: string | null;
+    firstVaultInteractionAt?: string;
+  },
 ): MemberProfile {
   const book = readAll();
   const k = norm(address);
@@ -66,6 +83,22 @@ export function putProfile(
       ...(partial.socials ?? {}),
     },
     updatedAt: new Date().toISOString(),
+    publicWealthProfile:
+      partial.publicWealthProfile !== undefined
+        ? partial.publicWealthProfile
+        : prev.publicWealthProfile === false
+          ? false
+          : true,
+    wealthDisplayName:
+      partial.wealthDisplayName === null
+        ? undefined
+        : partial.wealthDisplayName !== undefined
+          ? partial.wealthDisplayName.trim().slice(0, 32)
+          : prev.wealthDisplayName,
+    firstVaultInteractionAt:
+      partial.firstVaultInteractionAt !== undefined
+        ? partial.firstVaultInteractionAt
+        : prev.firstVaultInteractionAt,
   };
   if (next.socials.twitter !== undefined) next.socials.twitter = next.socials.twitter?.trim().slice(0, 256);
   if (next.socials.github !== undefined) next.socials.github = next.socials.github?.trim().slice(0, 256);

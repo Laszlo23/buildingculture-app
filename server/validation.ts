@@ -52,7 +52,15 @@ export const putProfileBody = z.object({
       farcaster: z.string().max(256).optional(),
     })
     .optional(),
+  publicWealthProfile: z.boolean().optional(),
+  wealthDisplayName: z.string().max(32).nullable().optional(),
 });
+
+export const wealthSnapshotBody = z.object({
+  address: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
+});
+
+export const wealthRangeParam = z.enum(["1M", "3M", "6M", "1Y", "ALL"]);
 
 export const completeDailyTaskBody = z.object({
   address: z.string().regex(/^0x[a-fA-F0-9]{40}$/),

@@ -1,5 +1,6 @@
-import { ChevronDown, Loader2, Wallet } from "lucide-react";
+import { ChevronDown, Loader2, User, Wallet, LineChart } from "lucide-react";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
 import type { Connector } from "wagmi";
 import { useConnection, useConnect, useConnectors, useDisconnect, useSwitchChain } from "wagmi";
 import { base, baseSepolia } from "wagmi/chains";
@@ -150,6 +151,17 @@ export function WalletConnectButton() {
             Switch to {targetChain().name}
           </DropdownMenuItem>
         )}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild className="cursor-pointer">
+          <Link to="/profile" className="flex items-center gap-2">
+            <User className="h-4 w-4" /> Profile
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild className="cursor-pointer">
+          <Link to={`/investor/${address}`} className="flex items-center gap-2">
+            <LineChart className="h-4 w-4" /> Wealth graph
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuLabel className="font-normal text-xs text-muted-foreground">
           API signer (deposits / votes)

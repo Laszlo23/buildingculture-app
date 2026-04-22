@@ -19,9 +19,9 @@ async function safeRead<T>(
   }
 }
 
-export async function fetchPortfolio() {
+/** Full portfolio read for any wallet (public wealth / leaderboards). */
+export async function fetchPortfolioForAddress(account: `0x${string}`) {
   const publicClient = getPublicClient();
-  const signer = getSignerAddress();
   const { vault, treasury, strategyRegistry, dao } = contractAddresses();
   const env = getEnv();
 
@@ -32,7 +32,7 @@ export async function fetchPortfolio() {
         address: vault,
         abi: vaultAbi,
         functionName: "balanceOf",
-        args: [signer],
+        args: [account],
       },
       {
         address: vault,
@@ -44,7 +44,7 @@ export async function fetchPortfolio() {
         address: vault,
         abi: vaultAbi,
         functionName: "yieldEarned",
-        args: [signer],
+        args: [account],
       },
       {
         address: treasury,
@@ -73,14 +73,14 @@ export async function fetchPortfolio() {
       ? (treasuryResult.result as bigint)
       : ZERO;
 
-  /** Voting power: try getVotes(signer, latest) — optional */
+  /** Voting power: try getVotes(account, latest) — optional */
   const blockNumber = await publicClient.getBlockNumber();
   const votingPower = await safeRead(() =>
     publicClient.readContract({
       address: dao,
       abi: governanceDaoAbi,
       functionName: "getVotes",
-      args: [signer, blockNumber],
+      args: [account, blockNumber],
     }),
   );
 
@@ -192,7 +192,7 @@ export async function fetchPortfolio() {
   };
 
   return {
-    address: signer,
+    address: account,
     totalSavings,
     yieldEarned,
     treasurySize,
@@ -205,6 +205,10 @@ export async function fetchPortfolio() {
     registryRecentEvents,
     keeperStack,
   };
+}
+
+export async function fetchPortfolio() {
+  return fetchPortfolioForAddress(getSignerAddress());
 }
 
 /** Vault `balanceOf` for an arbitrary address (e.g. Vault Patron NFT eligibility). */

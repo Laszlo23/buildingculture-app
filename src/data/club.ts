@@ -3,6 +3,7 @@ export const navItems = [
   { name: "Vault", path: "/vault", icon: "Vault" },
   { name: "Strategies", path: "/strategies", icon: "TrendingUp" },
   { name: "Portfolio", path: "/portfolio", icon: "PieChart" },
+  { name: "Leaderboard", path: "/leaderboard", icon: "Trophy" },
   { name: "Transparency", path: "/transparency", icon: "Shield" },
   { name: "Reserves", path: "/reserves", icon: "Landmark" },
   { name: "Academy", path: "/academy", icon: "GraduationCap" },

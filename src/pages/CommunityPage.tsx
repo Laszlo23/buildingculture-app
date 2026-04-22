@@ -5,7 +5,8 @@ import { leaderboard } from "@/data/club";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { formatRelativeTime, shortAddress } from "@/lib/formatTime";
+import { formatRelativeTime } from "@/lib/formatTime";
+import { InvestorAddressLink } from "@/components/wealth/InvestorAddressLink";
 import { useCommunityMessagesQuery, usePostCommunityMessageMutation } from "@/hooks/useCommunity";
 
 const rankColor = (rank: number) =>
@@ -141,7 +142,7 @@ export const CommunityPage = () => {
                     )}
                   >
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-medium font-mono">{shortAddress(m.address)}</span>
+                      <InvestorAddressLink address={m.address} className="text-xs font-medium" />
                       <Badge variant="outline" className="text-[9px] border-border/60 py-0">
                         Member
                       </Badge>

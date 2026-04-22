@@ -20,6 +20,8 @@ import { MembershipPage } from "./pages/MembershipPage";
 import { LearningRoutePage } from "./pages/LearningRoutePage";
 import { TransparencyPage } from "./pages/TransparencyPage";
 import { ProfilePage } from "./pages/ProfilePage";
+import { InvestorPage } from "./pages/InvestorPage";
+import { LeaderboardPage } from "./pages/LeaderboardPage";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +48,8 @@ const App = () => (
             <Route path="/community" element={wrap(<CommunityPage />)} />
             <Route path="/membership" element={wrap(<MembershipPage />)} />
             <Route path="/profile" element={wrap(<ProfilePage />)} />
+            <Route path="/investor/:address" element={wrap(<InvestorPage />)} />
+            <Route path="/leaderboard" element={wrap(<LeaderboardPage />)} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

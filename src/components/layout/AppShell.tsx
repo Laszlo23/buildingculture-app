@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Vault, TrendingUp, PieChart, GraduationCap,
-  Vote, Users, Gem, Bell, Search, Landmark, Shield, UserCircle, Menu,
+  Vote, Users, Gem, Bell, Search, Landmark, Shield, UserCircle, Menu, Trophy,
 } from "lucide-react";
 import { navItems } from "@/data/club";
 import { Button } from "@/components/ui/button";
@@ -23,11 +23,16 @@ const iconMap = {
   Landmark,
   Shield,
   UserCircle,
+  Trophy,
 };
 
 export const AppShell = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const current = navItems.find(n => n.path === location.pathname);
+  const pageTitle =
+    current?.name ??
+    (location.pathname.startsWith("/investor") ? "Investor profile" : null) ??
+    (location.pathname === "/leaderboard" ? "Leaderboard" : null);
   const { data: chainCfg } = useChainConfig();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
@@ -117,7 +122,7 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
                 <Menu className="h-5 w-5" />
               </Button>
               <h1 className="font-display text-base sm:text-lg font-semibold tracking-tight truncate min-w-0">
-                {current?.name ?? "Dashboard"}
+                {pageTitle ?? "Dashboard"}
               </h1>
               <Badge
                 variant="outline"
@@ -167,7 +172,7 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
                   />
                 </Link>
                 <p className="mt-3 text-xs text-muted-foreground">
-                  {chainCfg?.chainName ?? "Base"} · {current?.name ?? "Dashboard"}
+                  {chainCfg?.chainName ?? "Base"} · {pageTitle ?? "Dashboard"}
                 </p>
               </div>
 

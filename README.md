@@ -12,6 +12,7 @@ The main marketing site at **buildingculture.capital** can stay on your existing
 | API | Hono (Node), on-chain reads & signed txs |
 | Contracts | Solidity (Hardhat) — see `contracts/` |
 | Deploy | Static `dist/` + API; optional Docker (`docker-compose.yml`) |
+| Wealth | `GET /api/wealth/:address`, `GET /api/leaderboard`, UI at `/investor/:address` & `/leaderboard` (snapshots + optional synthetic history until a log indexer runs) |
 
 ## Requirements
 

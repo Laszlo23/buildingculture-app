@@ -7,7 +7,7 @@ import { ZodError } from "zod";
 import { getChain, getSignerAddress } from "./lib/chain.js";
 import { getEnv } from "./lib/env.js";
 import { fetchProposals } from "./services/governance.ts";
-import { fetchPortfolio } from "./services/portfolio.ts";
+import { fetchPortfolio, fetchPortfolioForAddress } from "./services/portfolio.ts";
 import {
   allocateStrategy,
   castVote,
@@ -35,11 +35,24 @@ import {
   learningCompleteBody,
   postCommunityMessageBody,
   putProfileBody,
+  wealthRangeParam,
+  wealthSnapshotBody,
   voteBody,
   withdrawBody,
 } from "./validation.ts";
 import { appendMessage, listMessages } from "./services/chatStore.ts";
 import { getProfile, putProfile } from "./services/profileStore.ts";
+import { getAllLatestSnapshots } from "./services/wealthHistoryStore.ts";
+import {
+  buildStrategyBreakdown,
+  buildWealthSeries,
+  computeAchievements,
+  computeLevel,
+  getPublicWealthAllowed,
+  recordWealthForAddress,
+  touchFirstVaultInteraction,
+} from "./services/wealthPublic.ts";
+import { getWealthHistory } from "./services/wealthHistoryStore.ts";
 import { completeTask, getDailySnapshot } from "./services/dailyTasksStore.ts";
 import { fetchVaultSavingsForAddress } from "./services/portfolio.ts";
 
@@ -337,10 +350,93 @@ app.put("/api/profile", async (c) => {
   try {
     const body = putProfileBody.parse(await c.req.json());
     const addr = body.address as `0x${string}`;
-    const profile = putProfile(addr, { bio: body.bio, socials: body.socials });
+    const profile = putProfile(addr, {
+      bio: body.bio,
+      socials: body.socials,
+      publicWealthProfile: body.publicWealthProfile,
+      wealthDisplayName: body.wealthDisplayName,
+    });
     return c.json({ profile });
   } catch (e) {
     return c.json({ error: formatRouteError(e) }, 400);
+  }
+});
+
+app.get("/api/wealth/:address", async (c) => {
+  try {
+    const raw = c.req.param("address");
+    if (!raw || !/^0x[a-fA-F0-9]{40}$/i.test(raw)) {
+      return c.json({ error: { message: "Invalid address" } }, 400);
+    }
+    const addr = raw.toLowerCase() as `0x${string}`;
+    const profile = getProfile(addr);
+    if (!getPublicWealthAllowed(profile)) {
+      return c.json({ error: { message: "This investor profile is private." }, private: true }, 403);
+    }
+    const rangeParsed = wealthRangeParam.safeParse(c.req.query("range") ?? "1Y");
+    const range = rangeParsed.success ? rangeParsed.data : "1Y";
+    const portfolio = await fetchPortfolioForAddress(addr);
+    recordWealthForAddress(addr, portfolio);
+    if (portfolio.totalSavings > 0 || portfolio.yieldEarned > 0) {
+      touchFirstVaultInteraction(addr, profile);
+    }
+    const profileAfter = getProfile(addr);
+    const history = getWealthHistory(addr);
+    const series = buildWealthSeries(addr, history, portfolio.totalSavings, portfolio.yieldEarned, range);
+    return c.json({
+      address: addr,
+      profile: {
+        wealthDisplayName: profileAfter.wealthDisplayName ?? null,
+        memberSince: profileAfter.firstVaultInteractionAt ?? null,
+      },
+      portfolio,
+      series,
+      strategies: buildStrategyBreakdown(portfolio),
+      achievements: computeAchievements(portfolio),
+      level: computeLevel(portfolio),
+      meta: {
+        range,
+        dataProvenance:
+          "On-chain reads via viem multicall; history uses server snapshots (append on view). Full log indexer can replace synthetic backfill.",
+      },
+    });
+  } catch (e) {
+    return c.json({ error: serializeError(e) }, 500);
+  }
+});
+
+app.post("/api/wealth/snapshot", async (c) => {
+  try {
+    const body = wealthSnapshotBody.parse(await c.req.json());
+    const addr = body.address.toLowerCase() as `0x${string}`;
+    const portfolio = await fetchPortfolioForAddress(addr);
+    recordWealthForAddress(addr, portfolio);
+    return c.json({ ok: true, address: addr, vault: portfolio.totalSavings, yield: portfolio.yieldEarned });
+  } catch (e) {
+    return c.json({ error: formatRouteError(e) }, 400);
+  }
+});
+
+app.get("/api/leaderboard", (c) => {
+  try {
+    const all = getAllLatestSnapshots();
+    const visible = all.filter((row) => {
+      const p = getProfile(row.address as `0x${string}`);
+      return getPublicWealthAllowed(p);
+    });
+    const topInvestors = [...visible].sort((a, b) => b.vaultUsd - a.vaultUsd).slice(0, 50);
+    const topYield = [...visible].sort((a, b) => b.yieldUsd - a.yieldUsd).slice(0, 50);
+    const topStrategists = [...visible].sort((a, b) => b.strategyRoiPct - a.strategyRoiPct).slice(0, 50);
+    const topVoters = [...visible].sort((a, b) => b.votesCast - a.votesCast).slice(0, 50);
+    return c.json({
+      topInvestors,
+      topYieldEarners: topYield,
+      topStrategists,
+      topDaoVoters: topVoters,
+      meta: { count: visible.length },
+    });
+  } catch (e) {
+    return c.json({ error: serializeError(e) }, 500);
   }
 });
 
@@ -379,6 +475,6 @@ const port = getEnv().PORT;
 const listenHost = process.env.API_LISTEN_HOST?.trim() || "127.0.0.1";
 console.log(`API listening on http://${listenHost}:${port}`);
 console.log(
-  "[api] Routes include GET /api/tasks/daily, /api/profile, /api/community/messages — if any 404 while older routes work, restart this process (stale tsx node).",
+  "[api] Routes include GET /api/tasks/daily, /api/profile, /api/wealth/:address, /api/leaderboard, /api/community/messages — if any 404 while older routes work, restart this process (stale tsx node).",
 );
 serve({ fetch: app.fetch, port, hostname: listenHost });

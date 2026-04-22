@@ -41,6 +41,7 @@ export function usePutProfileMutation() {
     mutationFn: (body: Parameters<typeof chainApi.putProfile>[0]) => chainApi.putProfile(body),
     onSuccess: (_data, vars) => {
       void qc.invalidateQueries({ queryKey: qk.profile(vars.address) });
+      void qc.invalidateQueries({ queryKey: ["wealth", vars.address] });
     },
   });
 }

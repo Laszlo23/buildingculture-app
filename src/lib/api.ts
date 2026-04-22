@@ -200,6 +200,65 @@ export type MemberProfileDto = {
     farcaster?: string;
   };
   updatedAt: string;
+  /** Default true. When false, /investor/:addr and leaderboards hide this wallet. */
+  publicWealthProfile?: boolean;
+  wealthDisplayName?: string;
+  firstVaultInteractionAt?: string;
+};
+
+export type WealthRange = "1M" | "3M" | "6M" | "1Y" | "ALL";
+
+export type WealthSeriesPoint = { t: string; vaultUsd: number; cumulativeYieldUsd: number };
+
+export type WealthAchievementDto = {
+  id: string;
+  title: string;
+  description: string;
+  unlocked: boolean;
+  tier?: "bronze" | "silver" | "gold" | "legend";
+};
+
+export type WealthLevelDto = {
+  id: "explorer" | "investor" | "strategist" | "governor" | "architect";
+  label: string;
+  xp: number;
+  xpToNext: number;
+};
+
+export type WealthStrategyRowDto = {
+  strategyId: string;
+  depositedUsd: number;
+  yieldUsd: number;
+  roiPct: number;
+};
+
+export type WealthDto = {
+  address: string;
+  profile: { wealthDisplayName: string | null; memberSince: string | null };
+  portfolio: PortfolioDto;
+  series: WealthSeriesPoint[];
+  strategies: WealthStrategyRowDto[];
+  achievements: WealthAchievementDto[];
+  level: WealthLevelDto;
+  meta: { range: WealthRange; dataProvenance: string };
+};
+
+export type LeaderboardRowDto = {
+  address: string;
+  vaultUsd: number;
+  yieldUsd: number;
+  votingPower: number;
+  strategyRoiPct: number;
+  votesCast: number;
+  updatedAt: string;
+};
+
+export type LeaderboardDto = {
+  topInvestors: LeaderboardRowDto[];
+  topYieldEarners: LeaderboardRowDto[];
+  topStrategists: LeaderboardRowDto[];
+  topDaoVoters: LeaderboardRowDto[];
+  meta: { count: number };
 };
 
 export type DailyTaskId = "check_in" | "share_x" | "community_pulse";
@@ -272,7 +331,22 @@ export const chainApi = {
     address: string;
     bio?: string;
     socials?: Partial<MemberProfileDto["socials"]>;
+    publicWealthProfile?: boolean;
+    wealthDisplayName?: string | null;
   }) => apiPut<{ profile: MemberProfileDto }, typeof body>("/api/profile", body),
+
+  getWealth: (address: string, range?: WealthRange) =>
+    apiGet<WealthDto>(
+      `/api/wealth/${encodeURIComponent(address)}${range ? `?range=${encodeURIComponent(range)}` : ""}`,
+    ),
+
+  postWealthSnapshot: (body: { address: string }) =>
+    apiPost<{ ok: boolean; address: string; vault: number; yield: number }, typeof body>(
+      "/api/wealth/snapshot",
+      body,
+    ),
+
+  getLeaderboard: () => apiGet<LeaderboardDto>("/api/leaderboard"),
 
   getDailyTasks: (address: string) =>
     apiGet<DailyTasksDto>(`/api/tasks/daily?address=${encodeURIComponent(address)}`),

@@ -14,6 +14,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import {
   useCompleteDailyTaskMutation,
@@ -141,12 +143,16 @@ export const ProfilePage = () => {
 
   const [bio, setBio] = useState("");
   const [socials, setSocials] = useState<MemberProfileDto["socials"]>({});
+  const [publicWealth, setPublicWealth] = useState(true);
+  const [wealthDisplayName, setWealthDisplayName] = useState("");
 
   useEffect(() => {
     const p = profileRes?.profile;
     if (!p) return;
     setBio(p.bio);
     setSocials({ ...p.socials });
+    setPublicWealth(p.publicWealthProfile !== false);
+    setWealthDisplayName(p.wealthDisplayName ?? "");
   }, [profileRes]);
 
   const shareUrl = useMemo(() => {
@@ -161,6 +167,8 @@ export const ProfilePage = () => {
       address,
       bio,
       socials,
+      publicWealthProfile: publicWealth,
+      wealthDisplayName: wealthDisplayName.trim() ? wealthDisplayName.trim().slice(0, 32) : null,
     });
   };
 
@@ -219,11 +227,16 @@ export const ProfilePage = () => {
           </h1>
           <p className="text-muted-foreground font-mono text-xs break-all">{address}</p>
         </div>
-        <Button variant="outline" className="rounded-xl" asChild>
-          <Link to="/community">
-            <MessageSquare className="w-4 h-4 mr-2" /> Member chat
-          </Link>
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" className="rounded-xl" asChild>
+            <Link to="/community">
+              <MessageSquare className="w-4 h-4 mr-2" /> Member chat
+            </Link>
+          </Button>
+          <Button variant="outline" className="rounded-xl" asChild>
+            <Link to={`/investor/${address}`}>Public wealth profile</Link>
+          </Button>
+        </div>
       </header>
 
       {/* Daily tasks */}
@@ -328,6 +341,38 @@ export const ProfilePage = () => {
           Tasks reset at UTC midnight. Posting in Member Chat auto-completes Community pulse when the API records your
           message.
         </p>
+      </section>
+
+      {/* Public wealth */}
+      <section className="glass-card p-6 space-y-4">
+        <h2 className="font-display font-semibold text-lg">Public wealth profile</h2>
+        <p className="text-xs text-muted-foreground max-w-prose">
+          When on, your vault stats appear on <code className="text-[10px]">/investor/&lt;address&gt;</code> and you can
+          appear on leaderboards. When off, the investor page returns private and snapshots are excluded from public
+          rankings.
+        </p>
+        <div className="flex items-center justify-between gap-4 rounded-xl border border-border/50 bg-secondary/20 px-4 py-3">
+          <div className="space-y-0.5">
+            <Label htmlFor="public-wealth" className="text-sm font-medium">
+              Public wealth profile
+            </Label>
+            <p className="text-[10px] text-muted-foreground">Default is on.</p>
+          </div>
+          <Switch id="public-wealth" checked={publicWealth} onCheckedChange={setPublicWealth} />
+        </div>
+        <div className="space-y-2 max-w-md">
+          <Label htmlFor="wealth-alias" className="text-xs text-muted-foreground">
+            Card display name (optional, max 32 chars)
+          </Label>
+          <Input
+            id="wealth-alias"
+            value={wealthDisplayName}
+            onChange={(e) => setWealthDisplayName(e.target.value)}
+            placeholder="e.g. stani"
+            maxLength={32}
+            className="rounded-xl"
+          />
+        </div>
       </section>
 
       {/* About + socials */}
