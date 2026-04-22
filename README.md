@@ -30,7 +30,7 @@ Edit `.env` with RPC/Alchemy, contract addresses, server signer key, and chain i
 
 ## Development
 
-Runs the Vite dev server on port **8080** and the Hono API on **PORT** from `.env** (default **3001**), with `/api` proxied from the browser.
+Runs the Vite dev server on port **8080** and the Hono API on **PORT** from `.env` (default **3001**), with `/api` proxied from the browser.
 
 ```bash
 npm run dev
