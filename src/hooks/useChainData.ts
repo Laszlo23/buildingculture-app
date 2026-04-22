@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { chainApi, explorerTxUrl, type PortfolioDto, type ProposalDto } from "@/lib/api";
+import { chainApi, explorerTxUrl, type PortfolioDto, type ProposalDto, type ProtocolPulseDto } from "@/lib/api";
 
 export const qk = {
   wallet: ["chain", "wallet"] as const,
@@ -8,6 +8,7 @@ export const qk = {
   portfolio: ["chain", "portfolio"] as const,
   treasury: ["chain", "treasury"] as const,
   proposals: ["chain", "proposals"] as const,
+  pulse: ["chain", "protocol", "pulse"] as const,
 };
 
 export function useWalletInfo() {
@@ -53,6 +54,18 @@ export function useProposals() {
   });
 }
 
+/** Institutional-style live snapshot: same block height, RPC timing, and vault reads in one response. */
+export function useProtocolPulse() {
+  return useQuery<ProtocolPulseDto>({
+    queryKey: qk.pulse,
+    queryFn: () => chainApi.getProtocolPulse(),
+    refetchInterval: 12_000,
+    staleTime: 6_000,
+    retry: 2,
+    retryDelay: (i) => Math.min(1500 * 2 ** i, 6_000),
+  });
+}
+
 function onTxSuccess(chainId: number, txHash: string, label: string) {
   const url = explorerTxUrl(chainId, txHash);
   toast.success(label, {
@@ -73,6 +86,7 @@ export function useDepositMutation() {
     onSuccess: (data) => {
       void qc.invalidateQueries({ queryKey: qk.portfolio });
       void qc.invalidateQueries({ queryKey: qk.treasury });
+      void qc.invalidateQueries({ queryKey: qk.pulse });
       onTxSuccess(data.chainId, data.txHash, "Deposit confirmed");
     },
     onError: (e: Error) => toast.error(e.message || "Deposit failed"),
@@ -87,6 +101,7 @@ export function useWithdrawMutation() {
     onSuccess: (data) => {
       void qc.invalidateQueries({ queryKey: qk.portfolio });
       void qc.invalidateQueries({ queryKey: qk.treasury });
+      void qc.invalidateQueries({ queryKey: qk.pulse });
       onTxSuccess(data.chainId, data.txHash, "Withdraw confirmed");
     },
     onError: (e: Error) => toast.error(e.message || "Withdraw failed"),
@@ -99,6 +114,7 @@ export function useClaimYieldMutation() {
     mutationFn: () => chainApi.claimYield(),
     onSuccess: (data) => {
       void qc.invalidateQueries({ queryKey: qk.portfolio });
+      void qc.invalidateQueries({ queryKey: qk.pulse });
       onTxSuccess(data.chainId, data.txHash, "Yield claimed");
     },
     onError: (e: Error) => toast.error(e.message || "Claim failed"),
@@ -112,6 +128,7 @@ export function useAllocateMutation() {
       chainApi.allocate(strategyId, bps),
     onSuccess: (data) => {
       void qc.invalidateQueries({ queryKey: qk.portfolio });
+      void qc.invalidateQueries({ queryKey: qk.pulse });
       onTxSuccess(data.chainId, data.txHash, "Allocation updated");
     },
     onError: (e: Error) => toast.error(e.message || "Allocation failed"),
@@ -125,6 +142,7 @@ export function useVoteMutation() {
       chainApi.vote(proposalId, support),
     onSuccess: (data) => {
       void qc.invalidateQueries({ queryKey: qk.proposals });
+      void qc.invalidateQueries({ queryKey: qk.pulse });
       onTxSuccess(data.chainId, data.txHash, "Vote submitted");
     },
     onError: (e: Error) => toast.error(e.message || "Vote failed"),

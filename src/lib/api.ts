@@ -140,6 +140,27 @@ export type TreasuryDto = {
   realAssetBacking: number;
 };
 
+/** Single “institutional” snapshot: one response, one block, measured RPC and live vault reads. */
+export type ProtocolPulseDto = {
+  fetchedAt: string;
+  rpcLatencyMs: number;
+  chainId: number;
+  chainName: string;
+  blockNumber: string;
+  blockHash: `0x${string}` | null;
+  blockTimestamp: string;
+  blockAgeSeconds: number;
+  baseFeeGwei: string | null;
+  vaultTvl: number;
+  daoTreasury: number;
+  strategyCount: number;
+  activeProposals: number;
+  pulseScore: number;
+  tagline: string;
+  /** Set by API when the bundle is the single server read; the UI may set `client` when the pulse route fails. */
+  source?: "api" | "client";
+};
+
 export type ProposalDto = {
   id: string;
   proposalId: string;
@@ -189,6 +210,16 @@ export type ChatMessageDto = {
   address: string;
   text: string;
   createdAt: string;
+};
+
+/** Farcaster (Neynar) — server proxy, no key in the client bundle. */
+export type FarcasterUserDto = {
+  fid: number;
+  username: string;
+  displayName: string;
+  pfpUrl: string | null;
+  bio: string | null;
+  url: string;
 };
 
 export type MemberProfileDto = {
@@ -261,6 +292,25 @@ export type LeaderboardDto = {
   meta: { count: number };
 };
 
+export type ReferralTierId = "none" | "builder" | "strategist" | "ambassador";
+
+export type ReferralStatsDto = {
+  address: string;
+  invites: number;
+  boostPct: number;
+  tier: { tier: ReferralTierId; label: string };
+  milestone: { next: number; prev: number; pct: number };
+};
+
+export type RecordReferralResult = { ok: boolean; count: number; duplicate: boolean };
+
+export type ReferralLeaderboardRowDto = {
+  address: `0x${string}`;
+  invites: number;
+  boostPct: number;
+  tier: string;
+};
+
 export type DailyTaskId = "check_in" | "share_x" | "community_pulse";
 
 export type DailyTasksDto = {
@@ -272,6 +322,23 @@ export type DailyTasksDto = {
     share_x: boolean;
     community_pulse: boolean;
   };
+};
+
+/** Server BaseAI pipe (no keys in the browser; 503 if LANGBASE_API_KEY unset). */
+export type BuildingCulturePipeRequest =
+  | { userMessage: string }
+  | { messages: { role: "user" | "assistant" | "system"; content: string }[] };
+
+export type BuildingCulturePipeResponseDto = {
+  id: string;
+  model: string;
+  completion: string;
+  usage: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
+  threadId?: string;
 };
 
 export const chainApi = {
@@ -286,6 +353,8 @@ export const chainApi = {
     }>("/api/config"),
   portfolio: () => apiGet<PortfolioDto>("/api/portfolio"),
   treasury: () => apiGet<TreasuryDto>("/api/treasury"),
+  /** Protocol “secret weapon”: sub-second read bundle for dashboards and embeds. */
+  getProtocolPulse: () => apiGet<ProtocolPulseDto>("/api/protocol/pulse"),
   proposals: () => apiGet<{ proposals: ProposalDto[] }>("/api/governance/proposals"),
   deposit: (amount: string, decimals?: number) =>
     apiPost<TxResult, { amount: string; decimals?: number }>("/api/transactions/deposit", {
@@ -314,6 +383,12 @@ export const chainApi = {
     apiGet<NftBadgesDto>(`/api/nft/badges?address=${encodeURIComponent(address)}`),
   learningComplete: (body: { address: string; routeId: "rwa" | "authenticity" | "truth"; answers: number[] }) =>
     apiPost<{ ok: boolean; routeId: string }, typeof body>("/api/learning/complete", body),
+
+  /** Story-quiz completion stored server-side (SQLite). */
+  getLearningProgress: (address: string) =>
+    apiGet<{
+      routes: Partial<Record<"rwa" | "authenticity" | "truth", { completedAt: string }>>;
+    }>(`/api/learning/progress?address=${encodeURIComponent(address)}`),
   claimLearningNft: (body: { address: string; routeId: "rwa" | "authenticity" | "truth" }) =>
     apiPost<TxResult, typeof body>("/api/nft/claim-learning", body),
   claimVaultPatron: (body: { address: string }) =>
@@ -323,6 +398,35 @@ export const chainApi = {
 
   postCommunityMessage: (body: { address: string; text: string }) =>
     apiPost<{ message: ChatMessageDto }, typeof body>("/api/community/messages", body),
+
+  /** Farcaster @username via Neynar (NEYNAR_API_KEY on server). */
+  getFarcaster: (address: string) =>
+    apiGet<{ configured: boolean; user: FarcasterUserDto | null }>(
+      `/api/social/farcaster?address=${encodeURIComponent(address)}`,
+    ),
+
+  getFarcasterBatch: (addresses: string[]) => {
+    const q = addresses
+      .map((a) => a.trim().toLowerCase())
+      .filter((a) => /^0x[a-fA-F0-9]{40}$/i.test(a));
+    if (q.length === 0) {
+      return Promise.resolve({
+        configured: false as boolean,
+        users: {} as Record<string, FarcasterUserDto | null>,
+      });
+    }
+    const unique = [...new Set(q)].slice(0, 50);
+    return apiGet<{
+      configured: boolean;
+      users: Record<string, FarcasterUserDto | null>;
+    }>(`/api/social/farcaster?addresses=${encodeURIComponent(unique.join(","))}`);
+  },
+
+  askBuildingCultureClub: (body: BuildingCulturePipeRequest) =>
+    apiPost<BuildingCulturePipeResponseDto, BuildingCulturePipeRequest>(
+      "/api/ai/pipe/building-culture-club",
+      body,
+    ),
 
   getProfile: (address: string) =>
     apiGet<{ profile: MemberProfileDto }>(`/api/profile?address=${encodeURIComponent(address)}`),
@@ -353,6 +457,17 @@ export const chainApi = {
 
   completeDailyTask: (body: { address: string; taskId: DailyTaskId }) =>
     apiPost<DailyTasksDto, typeof body>("/api/tasks/daily/complete", body),
+
+  getReferralStats: (address: string) =>
+    apiGet<ReferralStatsDto>(`/api/referrals/${encodeURIComponent(address)}`),
+
+  getReferralLeaderboard: (limit = 20) =>
+    apiGet<{ rows: ReferralLeaderboardRowDto[] }>(
+      `/api/referrals/leaderboard/top?limit=${encodeURIComponent(String(limit))}`,
+    ),
+
+  recordReferral: (body: { inviter: string; invitee: string }) =>
+    apiPost<RecordReferralResult, typeof body>("/api/referrals/record", body),
 };
 
 export function explorerTxUrl(chainId: number, txHash: string): string {
@@ -364,4 +479,10 @@ export function explorerAddressUrl(chainId: number, address: string): string {
   const a = address.startsWith("0x") ? address : `0x${address}`;
   if (chainId === 84532) return `https://sepolia.basescan.org/address/${a}`;
   return `https://basescan.org/address/${a}`;
+}
+
+export function explorerBlockUrl(chainId: number, blockNumber: string | number): string {
+  const b = String(blockNumber);
+  if (chainId === 84532) return `https://sepolia.basescan.org/block/${b}`;
+  return `https://basescan.org/block/${b}`;
 }

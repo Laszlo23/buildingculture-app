@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Vault, TrendingUp, PieChart, GraduationCap,
-  Vote, Users, Gem, Bell, Search, Landmark, Shield, UserCircle, Menu, Trophy,
+  Vote, Users, Gem, Bell, Search, Landmark, Shield, UserCircle, Menu, Trophy, UserPlus,
 } from "lucide-react";
 import { navItems } from "@/data/club";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,7 @@ const iconMap = {
   Shield,
   UserCircle,
   Trophy,
+  UserPlus,
 };
 
 export const AppShell = ({ children }: { children: React.ReactNode }) => {
@@ -32,7 +33,9 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
   const pageTitle =
     current?.name ??
     (location.pathname.startsWith("/investor") ? "Investor profile" : null) ??
-    (location.pathname === "/leaderboard" ? "Leaderboard" : null);
+    (location.pathname === "/leaderboard" ? "Leaderboard" : null) ??
+    (location.pathname === "/invites" ? "Referral invites" : null) ??
+    (location.pathname.startsWith("/invite/") ? "Referral" : null);
   const { data: chainCfg } = useChainConfig();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 

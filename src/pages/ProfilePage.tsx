@@ -24,8 +24,10 @@ import {
   usePutProfileMutation,
   useWeb3BioProfileQuery,
 } from "@/hooks/useCommunity";
+import { useFarcasterQuery } from "@/hooks/useFarcaster";
 import type { MemberProfileDto } from "@/lib/api";
 import { web3BioAvatarSrc } from "@/lib/web3bioFetch";
+import { FarcasterProfileCard } from "@/components/social/FarcasterProfileCard";
 
 function isRecord(x: unknown): x is Record<string, unknown> {
   return typeof x === "object" && x !== null && !Array.isArray(x);
@@ -138,6 +140,7 @@ export const ProfilePage = () => {
   const { data: profileRes, isLoading: profileLoading } = useMemberProfileQuery(address);
   const putMut = usePutProfileMutation();
   const { data: bioData, isLoading: bioLoading, error: bioError } = useWeb3BioProfileQuery(address);
+  const { data: farcaster, isLoading: fcLoading, error: fcError, isError: fcIsError } = useFarcasterQuery(address);
   const { data: daily, isLoading: dailyLoading, isError: dailyError, error: dailyErr } = useDailyTasksQuery(address);
   const completeMut = useCompleteDailyTaskMutation();
 
@@ -146,14 +149,19 @@ export const ProfilePage = () => {
   const [publicWealth, setPublicWealth] = useState(true);
   const [wealthDisplayName, setWealthDisplayName] = useState("");
 
+  /**
+   * Only hydrate from the server when the loaded wallet or saved snapshot (`updatedAt`) changes.
+   * Syncing on every `profileRes` object identity was wiping edits on background refetch / focus.
+   */
   useEffect(() => {
+    if (!address) return;
     const p = profileRes?.profile;
     if (!p) return;
     setBio(p.bio);
     setSocials({ ...p.socials });
     setPublicWealth(p.publicWealthProfile !== false);
     setWealthDisplayName(p.wealthDisplayName ?? "");
-  }, [profileRes]);
+  }, [address, profileRes?.profile?.updatedAt]);
 
   const shareUrl = useMemo(() => {
     const origin = typeof window !== "undefined" ? window.location.origin : "";
@@ -418,6 +426,45 @@ export const ProfilePage = () => {
               {putMut.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save profile"}
             </Button>
           </>
+        )}
+      </section>
+
+      {/* Farcaster (Neynar) */}
+      <section className="glass-card p-6 space-y-4">
+        <div>
+          <h2 className="font-display font-semibold text-lg">Farcaster</h2>
+          <p className="text-xs text-muted-foreground mt-0.5 max-w-prose">
+            Resolves your @handle when this wallet is a Farcaster <strong>custody</strong> or <strong>verified</strong> address
+            (via Neynar). Server key: <code className="text-[10px]">NEYNAR_API_KEY</code> — not exposed to the browser.
+          </p>
+        </div>
+        {fcLoading && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
+            <Loader2 className="w-4 h-4 animate-spin" /> Loading Farcaster…
+          </div>
+        )}
+        {fcIsError && (
+          <p className="text-sm text-destructive">
+            {fcError instanceof Error ? fcError.message : "Could not load Farcaster."}
+          </p>
+        )}
+        {!fcLoading && !fcIsError && farcaster && !farcaster.configured && (
+          <p className="text-sm text-muted-foreground">
+            Farcaster lookup is not configured. Add <code className="text-[10px]">NEYNAR_API_KEY</code> to the server{" "}
+            <code className="text-[10px]">.env</code> and restart the API.
+          </p>
+        )}
+        {!fcLoading && !fcIsError && farcaster?.configured && !farcaster.user && (
+          <p className="text-sm text-muted-foreground">
+            No Farcaster user found for this address. Add or verify the wallet in your Farcaster profile, then try
+            again.
+          </p>
+        )}
+        {!fcLoading && !fcIsError && farcaster?.user && (
+          <FarcasterProfileCard
+            user={farcaster.user}
+            onUseLink={(url) => setSocials((s) => ({ ...s, farcaster: url }))}
+          />
         )}
       </section>
 

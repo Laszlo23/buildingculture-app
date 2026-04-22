@@ -1,9 +1,12 @@
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { useConnection } from "wagmi";
 import { Check, Lock, BookOpen, GraduationCap, Trophy, ArrowRight } from "lucide-react";
 import { academyPaths } from "@/data/club";
-import { learningRouteList } from "@/data/learningRoutes";
+import { learningRouteList, type LearningRouteId } from "@/data/learningRoutes";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { chainApi } from "@/lib/api";
 
 const colorClass = {
   primary: "border-primary/30 text-primary",
@@ -12,6 +15,18 @@ const colorClass = {
 };
 
 export const AcademyPage = () => {
+  const { address } = useConnection();
+  const { data: learningProgress } = useQuery({
+    queryKey: ["learning", "progress", address] as const,
+    queryFn: () => chainApi.getLearningProgress(address!),
+    enabled: Boolean(address && /^0x[a-fA-F0-9]{40}$/i.test(address)),
+  });
+
+  const storyDone = learningRouteList.filter(
+    r => learningProgress?.routes?.[r.id as LearningRouteId] != null,
+  ).length;
+  const totalStories = learningRouteList.length;
+
   const totalDone = academyPaths.flatMap(p => p.modules).filter(m => m.done).length;
   const totalModules = academyPaths.flatMap(p => p.modules).length;
 
@@ -25,7 +40,11 @@ export const AcademyPage = () => {
         <div className="flex items-center gap-2 glass rounded-xl px-4 py-2.5">
           <Trophy className="w-4 h-4 text-gold" />
           <span className="text-sm">Progress</span>
-          <span className="font-mono-num font-semibold">{totalDone}/{totalModules}</span>
+          <span className="font-mono-num font-semibold" title="Story paths (saved on server)">
+            {address ? `${storyDone}/${totalStories} paths` : "—"}{" "}
+            <span className="text-muted-foreground font-normal">·</span>{" "}
+            {totalDone}/{totalModules} mod
+          </span>
         </div>
       </header>
 
@@ -65,25 +84,37 @@ export const AcademyPage = () => {
           Three short narratives with a checkpoint quiz. Pass to unlock a soulbound learning NFT minted by the club server (gas sponsored).
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {learningRouteList.map(route => (
+          {learningRouteList.map(route => {
+            const done = address ? learningProgress?.routes?.[route.id as LearningRouteId] != null : false;
+            return (
             <Link
               key={route.id}
               to={route.path}
               className={cn(
                 "glass-card p-5 flex flex-col gap-3 border transition hover:border-primary/40 group",
+                done && "border-primary/30 bg-primary/5",
                 route.accent === "gold" && "hover:shadow-[0_0_40px_-10px_hsl(var(--gold)/0.35)]",
                 route.accent === "info" && "hover:shadow-[0_0_40px_-10px_hsl(var(--info)/0.35)]",
                 route.accent === "primary" && "hover:shadow-[0_0_40px_-10px_hsl(var(--primary)/0.35)]",
               )}
             >
-              <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">NFT · {route.nftName}</div>
+              <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground flex items-center justify-between gap-2">
+                <span>NFT · {route.nftName}</span>
+                {done && (
+                  <span className="text-primary inline-flex items-center gap-0.5 text-[10px] font-semibold">
+                    <Check className="w-3.5 h-3.5" /> Saved
+                  </span>
+                )}
+              </div>
               <div className="font-display font-semibold text-lg leading-tight">{route.title}</div>
               <p className="text-sm text-muted-foreground flex-1">{route.subtitle}</p>
               <div className="inline-flex items-center gap-1 text-sm text-primary font-medium">
-                Start journey <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                {done ? "Review" : "Start journey"}{" "}
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
               </div>
             </Link>
-          ))}
+            );
+          })}
         </div>
       </section>
 

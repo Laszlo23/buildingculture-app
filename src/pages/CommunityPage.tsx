@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useConnection } from "wagmi";
 import { Trophy, MessageSquare, Sparkles, Users, Loader2 } from "lucide-react";
 import { leaderboard } from "@/data/club";
@@ -8,6 +8,9 @@ import { cn } from "@/lib/utils";
 import { formatRelativeTime } from "@/lib/formatTime";
 import { InvestorAddressLink } from "@/components/wealth/InvestorAddressLink";
 import { useCommunityMessagesQuery, usePostCommunityMessageMutation } from "@/hooks/useCommunity";
+import { useFarcasterBatchQuery } from "@/hooks/useFarcaster";
+import { FarcasterHandlePill } from "@/components/social/FarcasterProfileCard";
+import { ClubAIPanel } from "@/components/community/ClubAIPanel";
 
 const rankColor = (rank: number) =>
   rank === 1 ? "text-gold" : rank === 2 ? "text-muted-foreground" : rank === 3 ? "text-warning" : "text-foreground";
@@ -19,6 +22,8 @@ export const CommunityPage = () => {
   const postMut = usePostCommunityMessageMutation();
 
   const messages = data?.messages ?? [];
+  const chatAddresses = useMemo(() => messages.map((m) => m.address), [messages]);
+  const { data: farcasterByAddr } = useFarcasterBatchQuery(chatAddresses);
   const connected = status === "connected" && address;
 
   const send = () => {
@@ -37,6 +42,8 @@ export const CommunityPage = () => {
         <h1 className="font-display text-3xl font-semibold tracking-tight">Community</h1>
         <p className="text-muted-foreground text-sm mt-1">Leaderboard, discussions and member activity.</p>
       </header>
+
+      <ClubAIPanel />
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
         {/* Leaderboard */}
@@ -110,7 +117,7 @@ export const CommunityPage = () => {
             <MessageSquare className="w-5 h-5 text-primary" />
             <h2 className="font-display font-semibold text-lg">Member Chat</h2>
             <Badge variant="outline" className="ml-auto border-border/60 text-[10px]">
-              Live (server)
+              Live · auto-sync
             </Badge>
           </div>
 
@@ -141,8 +148,11 @@ export const CommunityPage = () => {
                       you ? "border-primary/30 bg-primary/5" : "border-border/60 bg-secondary/30",
                     )}
                   >
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <InvestorAddressLink address={m.address} className="text-xs font-medium" />
+                      {farcasterByAddr?.users?.[m.address.toLowerCase()] && (
+                        <FarcasterHandlePill user={farcasterByAddr.users[m.address.toLowerCase()]!} />
+                      )}
                       <Badge variant="outline" className="text-[9px] border-border/60 py-0">
                         Member
                       </Badge>

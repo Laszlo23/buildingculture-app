@@ -51,6 +51,7 @@ export function LearningRoutePage() {
     onSuccess: () => {
       toast.success("Quiz passed — you can claim your credential NFT.");
       void qc.invalidateQueries({ queryKey: qkElig(address) });
+      void qc.invalidateQueries({ queryKey: ["learning", "progress", address] });
     },
     onError: (e: Error) => toast.error(e.message || "Could not record completion"),
   });

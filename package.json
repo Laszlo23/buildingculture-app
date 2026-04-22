@@ -20,9 +20,13 @@
     "deploy:base-sepolia": "hardhat run scripts/deploy-base-sepolia.cjs --network baseSepolia",
     "deploy:base": "hardhat run scripts/deploy-base-sepolia.cjs --network base",
     "deploy:learning-nft": "hardhat run scripts/deploy-learning-nft.cjs --network baseSepolia",
-    "deploy:learning-nft:mainnet": "hardhat run scripts/deploy-learning-nft.cjs --network base"
+    "deploy:learning-nft:mainnet": "hardhat run scripts/deploy-learning-nft.cjs --network base",
+    "deploy:villa-poc:sepolia": "hardhat run scripts/deploy-villa-bonding-curve.cjs --network baseSepolia",
+    "deploy:villa-poc:mainnet": "hardhat run scripts/deploy-villa-bonding-curve.cjs --network base",
+    "baseai": "baseai"
   },
   "dependencies": {
+    "@baseai/core": "^0.9.43",
     "@hono/node-server": "^2.0.0",
     "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-accordion": "^1.2.11",
@@ -53,7 +57,9 @@
     "@radix-ui/react-toggle-group": "^1.1.10",
     "@radix-ui/react-tooltip": "^1.2.7",
     "@tanstack/react-query": "^5.83.0",
+    "baseai": "^0.9.44",
     "baseline-browser-mapping": "^2.10.20",
+    "better-sqlite3": "^12.9.0",
     "caniuse-lite": "^1.0.30001788",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

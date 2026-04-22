@@ -92,6 +92,12 @@ nano .env   # paste production values from your local .env (never commit .env)
 
 **Required for the API** (see `server/lib/env.ts`): `PRIVATE_KEY`, contract addresses, `ALCHEMY_API_KEY` or `RPC_URL`, etc.
 
+**Persistence** — Community chat and learning quiz completions are stored in **`server/.data/app.db`** (SQLite). Back up that file (and the rest of `server/.data/`) with your app; legacy JSON files are auto-imported into the DB once if the tables are empty.
+
+**Farcaster (optional)** — Set **`NEYNAR_API_KEY`** on the server (same `.env` as the API) to resolve @handles for wallets that are Farcaster custody or verified addresses. The key never goes in the Vite bundle; the UI calls `GET /api/social/farcaster`.
+
+**Optional: Club AI (BaseAI + Langbase)** — The Community page can call `POST /api/ai/pipe/building-culture-club` via the same Hono process. It is **not** required to run the app. Merge the variables you need from `.env.baseai.example` into the server’s `.env` (same file as the rest of the API). Set **`LANGBASE_API_KEY`** (server-only; do not add `VITE_*` for AI). Provider keys belong in [Langbase keysets](https://langbase.com/docs/features/keysets) for hosted runs. If `LANGBASE_API_KEY` is missing, the route returns **503** and the rest of the site works. Use `npm run baseai` in development to iterate on the pipe in `baseai/pipes/`.
+
 **CORS** — set:
 
 ```env
@@ -156,3 +162,16 @@ VITE_SITE_ORIGIN=https://app.buildingculture.capital npm run build:prod
 sudo systemctl restart buildingculture-api
 sudo systemctl reload nginx
 ```
+
+## Villa POC bonding curve (optional)
+
+Deploy `VillaPocBondingCurve` with Hardhat (test on Base Sepolia first):
+
+```bash
+npm run compile:contracts
+npm run deploy:villa-poc:sepolia
+# or mainnet (requires real ETH + legal readiness):
+# VILLA_POC_BENEFICIARY=0xYourMultisig npm run deploy:villa-poc:mainnet
+```
+
+Copy printed `VITE_VILLA_BONDING_CURVE_ADDRESS` (and optional `VITE_VILLA_BONDING_USDC_ADDRESS`) into the host `.env` before `npm run build:prod`. The Reserves page shows the buy UI only when the curve address is set.

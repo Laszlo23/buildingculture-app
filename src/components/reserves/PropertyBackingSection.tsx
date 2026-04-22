@@ -2,13 +2,17 @@ import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { FileText, Leaf } from "lucide-react";
 import type { RealAssetEntry } from "@/data/realAssets";
-import { publicAssetSrc } from "@/data/realAssets";
+import { formatDaoPocFigures, publicAssetSrc } from "@/data/realAssets";
+import { VillaImageShowcase } from "@/components/reserves/VillaImageShowcase";
+import { VillaPocBuyCard } from "@/components/reserves/VillaPocBuyCard";
 import { cn } from "@/lib/utils";
 
 type Props = {
   asset: RealAssetEntry;
   sectionIndex: number;
   onOpenImage: (payload: { src: string; alt: string }) => void;
+  /** Anchor id for in-page links (e.g. `/reserves#villa-ebreichsdorf`). */
+  sectionDomId?: string;
 };
 
 function highlightRows(asset: RealAssetEntry) {
@@ -17,10 +21,11 @@ function highlightRows(asset: RealAssetEntry) {
   return asset.factSheet.filter(row => labels.includes(row.label));
 }
 
-export function PropertyBackingSection({ asset, sectionIndex, onOpenImage }: Props) {
+export function PropertyBackingSection({ asset, sectionIndex, onOpenImage, sectionDomId }: Props) {
   const [failed, setFailed] = useState<Record<string, true>>({});
-  const heroSrc = asset.imagePaths[0];
-  const galleryPaths = asset.imagePaths.slice(1);
+  const useVillaShowcase = asset.id === "villa-ebreichsdorf" && asset.imagePaths.length > 0;
+  const heroSrc = useVillaShowcase ? undefined : asset.imagePaths[0];
+  const galleryPaths = useVillaShowcase ? [] : asset.imagePaths.slice(1);
 
   const chips = useMemo(() => highlightRows(asset), [asset]);
 
@@ -68,8 +73,11 @@ export function PropertyBackingSection({ asset, sectionIndex, onOpenImage }: Pro
     );
   };
 
+  const pocFigures = asset.daoPoc ? formatDaoPocFigures(asset.daoPoc) : null;
+
   return (
     <motion.article
+      id={sectionDomId}
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
@@ -77,7 +85,15 @@ export function PropertyBackingSection({ asset, sectionIndex, onOpenImage }: Pro
       className="glass-card overflow-hidden"
     >
       <div className="relative">
-        {heroSrc ? (
+        {useVillaShowcase ? (
+          <VillaImageShowcase
+            images={asset.imagePaths}
+            supportiveTitle={asset.location}
+            headline={asset.shortTitle}
+            chips={chips}
+            onOpenImage={onOpenImage}
+          />
+        ) : heroSrc ? (
           <div className="relative">
             {renderThumb(heroSrc, 0, { hero: true })}
             <div className="absolute inset-0 flex flex-col justify-end p-5 sm:p-8 pointer-events-none z-10">
@@ -138,6 +154,25 @@ export function PropertyBackingSection({ asset, sectionIndex, onOpenImage }: Pro
         )}
 
         <p className="text-sm text-muted-foreground leading-relaxed">{asset.summary}</p>
+
+        {asset.daoPoc && pocFigures && (
+          <div className="rounded-xl border border-primary/25 bg-primary/5 p-4 space-y-3">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-primary">{asset.daoPoc.headline}</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="rounded-lg border border-border/50 bg-background/40 px-3 py-2">
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Treasury funding target</div>
+                <div className="font-mono-num text-lg font-semibold mt-0.5">{pocFigures.funding}</div>
+              </div>
+              <div className="rounded-lg border border-border/50 bg-background/40 px-3 py-2">
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Projected value (internal est.)</div>
+                <div className="font-mono-num text-lg font-semibold mt-0.5">{pocFigures.projected}</div>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">{asset.daoPoc.tokenizationNote}</p>
+          </div>
+        )}
+
+        {asset.id === "villa-ebreichsdorf" ? <VillaPocBuyCard /> : null}
 
         <div>
           <h3 className="text-sm font-semibold flex items-center gap-2 mb-3">

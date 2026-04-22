@@ -1,58 +1,37 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
-import { dirname, join } from "path";
-import { fileURLToPath } from "url";
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const dir = join(__dirname, "../.data");
-const file = join(dir, "learning-completions.json");
+import { getDb } from "../lib/db.js";
 
 export type RouteId = "rwa" | "authenticity" | "truth";
-
-type CompletionRecord = {
-  completedAt: string;
-};
-
-type AddressBook = Record<
-  string,
-  {
-    /** lowercase address key in file is normalized */
-    completions: Partial<Record<RouteId, CompletionRecord>>;
-  }
->;
-
-function readAll(): AddressBook {
-  if (!existsSync(file)) return {};
-  try {
-    const raw = readFileSync(file, "utf8");
-    const parsed = JSON.parse(raw) as AddressBook;
-    return parsed && typeof parsed === "object" ? parsed : {};
-  } catch {
-    return {};
-  }
-}
-
-function writeAll(data: AddressBook) {
-  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-  writeFileSync(file, JSON.stringify(data, null, 2), "utf8");
-}
 
 function norm(addr: string) {
   return addr.toLowerCase();
 }
 
 export function getCompletions(address: `0x${string}`) {
-  const book = readAll();
-  return book[norm(address)]?.completions ?? {};
+  const rows = getDb()
+    .prepare(
+      "SELECT route_id, completed_at FROM learning_completions WHERE address = ?",
+    )
+    .all(norm(address)) as { route_id: string; completed_at: string }[];
+  const out: Partial<Record<RouteId, { completedAt: string }>> = {};
+  for (const r of rows) {
+    if (r.route_id === "rwa" || r.route_id === "authenticity" || r.route_id === "truth") {
+      out[r.route_id as RouteId] = { completedAt: r.completed_at };
+    }
+  }
+  return out;
 }
 
 export function markRouteComplete(address: `0x${string}`, routeId: RouteId) {
-  const book = readAll();
-  const k = norm(address);
-  if (!book[k]) book[k] = { completions: {} };
-  book[k].completions[routeId] = { completedAt: new Date().toISOString() };
-  writeAll(book);
+  getDb()
+    .prepare(
+      "INSERT OR REPLACE INTO learning_completions (address, route_id, completed_at) VALUES (?, ?, ?)",
+    )
+    .run(norm(address), routeId, new Date().toISOString());
 }
 
 export function hasCompletedRoute(address: `0x${string}`, routeId: RouteId): boolean {
-  return Boolean(getCompletions(address)[routeId]);
+  const row = getDb()
+    .prepare("SELECT 1 AS ok FROM learning_completions WHERE address = ? AND route_id = ?")
+    .get(norm(address), routeId) as { ok: number } | undefined;
+  return Boolean(row);
 }

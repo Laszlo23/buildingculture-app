@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useFarcasterQuery } from "@/hooks/useFarcaster";
 import { Link, useParams } from "react-router-dom";
 import { useEnsName } from "wagmi";
 import { mainnet } from "wagmi/chains";
@@ -30,6 +31,7 @@ export function InvestorPage() {
     chainId: mainnet.id,
     query: { enabled: valid },
   });
+  const { data: farcaster } = useFarcasterQuery(valid ? address : undefined);
 
   const xpPct = useMemo(() => {
     if (!q.data) return 0;
@@ -111,6 +113,16 @@ export function InvestorPage() {
           </div>
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground font-mono">
             <span className="break-all">{d.address}</span>
+            {farcaster?.configured && farcaster.user && (
+              <a
+                href={farcaster.user.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center text-primary font-sans font-medium not-italic hover:underline shrink-0"
+              >
+                @{farcaster.user.username}
+              </a>
+            )}
             {scan && (
               <a href={scan} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline shrink-0">
                 BaseScan <ExternalLink className="w-3 h-3" />

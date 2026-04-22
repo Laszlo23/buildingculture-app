@@ -33,3 +33,10 @@ server/.data/
 *.njsproj
 *.sln
 *.sw?
+# baseai
+**/.baseai/
+# env file
+.env
+
+# Personal / legal PDFs (do not commit)
+public/berggasse/*Gmail*.pdf

@@ -25,7 +25,7 @@ export const LevelProgress = ({ current, xp, xpToNext, compact }: LevelProgressP
               <Trophy className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
-              <div className="text-xs text-muted-foreground uppercase tracking-wider">Wealth club tier</div>
+              <div className="text-xs text-muted-foreground uppercase tracking-wider">Member tier</div>
               <div className="font-display font-semibold text-lg leading-tight">{current}</div>
               {tier?.yieldBoostDisplay != null && (
                 <div className="text-[11px] text-primary font-medium mt-0.5">

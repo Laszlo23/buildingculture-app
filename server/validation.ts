@@ -66,3 +66,30 @@ export const completeDailyTaskBody = z.object({
   address: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
   taskId: z.enum(["check_in", "share_x", "community_pulse"]),
 });
+
+export const recordReferralBody = z.object({
+  inviter: z.string().regex(/^0x[a-fA-F0-9]{40}$/i),
+  invitee: z.string().regex(/^0x[a-fA-F0-9]{40}$/i),
+});
+
+/** BaseAI building-culture-club pipe: single turn or custom message list (after system messages on server). */
+export const buildingCulturePipeBody = z
+  .object({
+    userMessage: z.string().min(1).max(4000).optional(),
+    messages: z
+      .array(
+        z.object({
+          role: z.enum(["user", "assistant", "system"]),
+          content: z.string().min(1).max(8000),
+        }),
+      )
+      .min(1)
+      .max(50)
+      .optional(),
+  })
+  .refine(
+    (d) =>
+      (d.userMessage != null && d.userMessage.trim().length > 0) ||
+      (d.messages != null && d.messages.length > 0),
+    { message: "Provide userMessage or messages" },
+  );

@@ -25,7 +25,7 @@ import {
   mintAchievement,
   readHasAchievement,
 } from "./services/nftMint.ts";
-import { hasCompletedRoute, markRouteComplete, type RouteId } from "./services/learningStore.ts";
+import { getCompletions, hasCompletedRoute, markRouteComplete, type RouteId } from "./services/learningStore.ts";
 import {
   allocateBody,
   claimLearningNftBody,
@@ -37,9 +37,11 @@ import {
   putProfileBody,
   wealthRangeParam,
   wealthSnapshotBody,
+  recordReferralBody,
   voteBody,
   withdrawBody,
 } from "./validation.ts";
+import { getReferralStats, leaderboardByInvites, recordReferral } from "./services/referralStore.ts";
 import { appendMessage, listMessages } from "./services/chatStore.ts";
 import { getProfile, putProfile } from "./services/profileStore.ts";
 import { getAllLatestSnapshots } from "./services/wealthHistoryStore.ts";
@@ -55,6 +57,12 @@ import {
 import { getWealthHistory } from "./services/wealthHistoryStore.ts";
 import { completeTask, getDailySnapshot } from "./services/dailyTasksStore.ts";
 import { fetchVaultSavingsForAddress } from "./services/portfolio.ts";
+import { buildProtocolPulse } from "./services/protocolPulse.ts";
+import { registerAiRoutes } from "./routes/ai.js";
+import { registerSocialRoutes } from "./routes/social.js";
+import { initAppDatabase } from "./lib/db.js";
+
+initAppDatabase();
 
 function formatRouteError(e: unknown) {
   if (e instanceof ZodError) {
@@ -84,6 +92,9 @@ app.use(
 
 app.get("/health", (c) => c.json({ ok: true }));
 
+registerSocialRoutes(app);
+registerAiRoutes(app);
+
 app.get("/api/wallet", (c) => {
   try {
     const address = getSignerAddress();
@@ -110,6 +121,15 @@ app.get("/api/config", (c) => {
       assetDecimals: env.ASSET_DECIMALS,
       vaultPatronMinDeposit: env.VAULT_PATRON_MIN_DEPOSIT,
     });
+  } catch (e) {
+    return c.json({ error: serializeError(e) }, 500);
+  }
+});
+
+app.get("/api/protocol/pulse", async (c) => {
+  try {
+    const pulse = await buildProtocolPulse();
+    return c.json(pulse);
   } catch (e) {
     return c.json({ error: serializeError(e) }, 500);
   }
@@ -216,6 +236,20 @@ app.post("/api/learning/complete", async (c) => {
     return c.json({ ok: true, routeId: body.routeId });
   } catch (e) {
     return c.json({ error: formatRouteError(e) }, 400);
+  }
+});
+
+/** Quiz completion per wallet (SQLite + legacy JSON migration). Used by Academy and NFT eligibility. */
+app.get("/api/learning/progress", (c) => {
+  try {
+    const address = c.req.query("address");
+    if (!address || !/^0x[a-fA-F0-9]{40}$/i.test(address)) {
+      return c.json({ error: { message: "Query ?address=0x… is required." } }, 400);
+    }
+    const routes = getCompletions(address as `0x${string}`);
+    return c.json({ routes });
+  } catch (e) {
+    return c.json({ error: serializeError(e) }, 500);
   }
 });
 
@@ -412,6 +446,40 @@ app.post("/api/wealth/snapshot", async (c) => {
     const portfolio = await fetchPortfolioForAddress(addr);
     recordWealthForAddress(addr, portfolio);
     return c.json({ ok: true, address: addr, vault: portfolio.totalSavings, yield: portfolio.yieldEarned });
+  } catch (e) {
+    return c.json({ error: formatRouteError(e) }, 400);
+  }
+});
+
+app.get("/api/referrals/leaderboard/top", (c) => {
+  try {
+    const lim = Math.min(100, Math.max(1, Number(c.req.query("limit")) || 20));
+    return c.json({ rows: leaderboardByInvites(lim) });
+  } catch (e) {
+    return c.json({ error: serializeError(e) }, 500);
+  }
+});
+
+app.get("/api/referrals/:address", (c) => {
+  try {
+    const raw = c.req.param("address");
+    if (!raw || !/^0x[a-fA-F0-9]{40}$/i.test(raw)) {
+      return c.json({ error: { message: "Invalid address" } }, 400);
+    }
+    const data = getReferralStats(raw.toLowerCase() as `0x${string}`);
+    return c.json(data);
+  } catch (e) {
+    return c.json({ error: serializeError(e) }, 500);
+  }
+});
+
+app.post("/api/referrals/record", async (c) => {
+  try {
+    const body = recordReferralBody.parse(await c.req.json());
+    const inv = body.inviter as `0x${string}`;
+    const invi = body.invitee as `0x${string}`;
+    const r = recordReferral(inv, invi);
+    return c.json(r);
   } catch (e) {
     return c.json({ error: formatRouteError(e) }, 400);
   }

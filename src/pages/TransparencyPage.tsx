@@ -46,6 +46,18 @@ const ROWS: Array<{ metric: string; source: string; detail: string }> = [
     source: "Static / index",
     detail: "Some strips are placeholders until indexed from events or subgraph.",
   },
+  {
+    metric: "DAO real estate acquisition POC (Villa Ebreichsdorf)",
+    source: "Club materials / roadmap",
+    detail:
+      "Funding targets, projected post-completion value, and tokenization copy on `/reserves` are narrative and design intent — not `ClubTreasury.totalAssets()` or other on-chain balances until a raise and legal closing are implemented.",
+  },
+  {
+    metric: "Villa POC bonding curve (USDC → vEBR)",
+    source: "On-chain when VITE_VILLA_BONDING_CURVE_ADDRESS is set",
+    detail:
+      "`VillaPocBondingCurve.buy(usdcBudget)` pulls USDC to the configured beneficiary and mints receipt tokens; not audited and unrelated to `ClubTreasury.totalAssets()`. If the env address is unset, no live curve is wired in this UI.",
+  },
 ];
 
 export const TransparencyPage = () => {

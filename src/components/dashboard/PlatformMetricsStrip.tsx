@@ -28,7 +28,7 @@ export function PlatformMetricsStrip({
   return (
     <div className="rounded-2xl border border-border/60 bg-secondary/20 px-4 py-4 lg:px-6">
       <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-3 font-medium">
-        Onchain Savings Club · Protocol snapshot
+        Protocol health · TVL, treasury, members, snapshot
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="flex items-start gap-3">

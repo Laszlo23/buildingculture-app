@@ -4,7 +4,7 @@ export const proposalMeta: Record<
   { title: string; category: string; endsIn?: string; status: "active" | "passed" | "defeated" }
 > = {
   "42": {
-    title: "Acquire Lisbon Heritage Property — €2.4M",
+    title: "Acquire Villa Ebreichsdorf (Ebreichsdorf, AT) — €2.4M treasury POC",
     category: "Real Estate",
     endsIn: "2d 14h",
     status: "active",

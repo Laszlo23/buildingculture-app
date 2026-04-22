@@ -25,7 +25,10 @@ function shortAddr(a: string) {
   return `${a.slice(0, 6)}…${a.slice(-4)}`;
 }
 
-export function WalletConnectButton() {
+const disconnectedPrimaryClass =
+  "rounded-xl font-semibold gap-2 shadow-glow bg-gradient-primary text-primary-foreground hover:opacity-90 border-0";
+
+export function WalletConnectButton({ disconnectedPrimary = false }: { disconnectedPrimary?: boolean }) {
   const { address, chainId, status } = useConnection();
   const connectors = useConnectors();
   const { connectAsync, isPending: isConnecting } = useConnect();
@@ -67,8 +70,8 @@ export function WalletConnectButton() {
       return (
         <Button
           type="button"
-          variant="secondary"
-          className="rounded-xl font-medium gap-2"
+          variant={disconnectedPrimary ? undefined : "secondary"}
+          className={disconnectedPrimary ? disconnectedPrimaryClass : "rounded-xl font-medium gap-2"}
           disabled={isConnecting}
           onClick={() => void handleConnect(c)}
         >
@@ -77,7 +80,9 @@ export function WalletConnectButton() {
           ) : (
             <Wallet className="w-4 h-4 shrink-0" />
           )}
-          <span className="text-xs">Connect {c.name}</span>
+          <span className={disconnectedPrimary ? "text-sm" : "text-xs"}>
+            {disconnectedPrimary ? "Get Started" : `Connect ${c.name}`}
+          </span>
         </Button>
       );
     }
@@ -87,8 +92,8 @@ export function WalletConnectButton() {
         <DropdownMenuTrigger asChild>
           <Button
             type="button"
-            variant="secondary"
-            className="rounded-xl font-medium gap-2"
+            variant={disconnectedPrimary ? undefined : "secondary"}
+            className={disconnectedPrimary ? disconnectedPrimaryClass : "rounded-xl font-medium gap-2"}
             disabled={isConnecting}
           >
             {isConnecting ? (
@@ -96,7 +101,9 @@ export function WalletConnectButton() {
             ) : (
               <Wallet className="w-4 h-4 shrink-0" />
             )}
-            <span className="text-xs">Connect wallet</span>
+            <span className={disconnectedPrimary ? "text-sm" : "text-xs"}>
+              {disconnectedPrimary ? "Get Started" : "Connect wallet"}
+            </span>
             <ChevronDown className="w-4 h-4 opacity-60 shrink-0" />
           </Button>
         </DropdownMenuTrigger>

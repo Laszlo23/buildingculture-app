@@ -47,10 +47,13 @@ function norm(addr: string) {
   return addr.toLowerCase();
 }
 
+/** Stable until the first save, so clients can key on `updatedAt` without a new value on every GET. */
+const NO_PROFILE_YET = "2000-01-01T00:00:00.000Z";
+
 const emptyProfile = (): MemberProfile => ({
   bio: "",
   socials: {},
-  updatedAt: new Date().toISOString(),
+  updatedAt: NO_PROFILE_YET,
   publicWealthProfile: true,
 });
 

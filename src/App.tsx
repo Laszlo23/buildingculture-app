@@ -22,6 +22,8 @@ import { TransparencyPage } from "./pages/TransparencyPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { InvestorPage } from "./pages/InvestorPage";
 import { LeaderboardPage } from "./pages/LeaderboardPage";
+import { InvitesPage } from "./pages/InvitesPage";
+import { InvitePage } from "./pages/InvitePage";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +52,8 @@ const App = () => (
             <Route path="/profile" element={wrap(<ProfilePage />)} />
             <Route path="/investor/:address" element={wrap(<InvestorPage />)} />
             <Route path="/leaderboard" element={wrap(<LeaderboardPage />)} />
+            <Route path="/invites" element={wrap(<InvitesPage />)} />
+            <Route path="/invite/:address" element={wrap(<InvitePage />)} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

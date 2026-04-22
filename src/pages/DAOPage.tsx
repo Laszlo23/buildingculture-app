@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Vote, Check, X, MinusCircle, Plus, Clock, Loader2 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Vote, Check, X, MinusCircle, Plus, Clock, Loader2, Landmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TransactionConfirmDialog } from "@/components/TransactionConfirmDialog";
@@ -64,6 +65,33 @@ export const DAOPage = () => {
           </Button>
         </div>
       </header>
+
+      <section
+        className="rounded-2xl border border-border/60 bg-secondary/25 px-4 py-4 sm:px-5 sm:py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+        aria-labelledby="treasury-poc-heading"
+      >
+        <div className="flex gap-3 min-w-0">
+          <div className="shrink-0 w-10 h-10 rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center">
+            <Landmark className="w-5 h-5 text-gold" />
+          </div>
+          <div className="min-w-0 space-y-1">
+            <h2 id="treasury-poc-heading" className="text-sm font-semibold text-foreground">
+              Treasury acquisition POC
+            </h2>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Villa Ebreichsdorf: court-appraised lakeside asset near Vienna; DAO roadmap targets completion funding and a
+              post-completion value estimate on{" "}
+              <Link to="/reserves" className="text-primary hover:underline">
+                Reserves
+              </Link>
+              . Figures are illustrative until wired to on-chain treasury flows.
+            </p>
+          </div>
+        </div>
+        <Button variant="outline" size="sm" className="rounded-xl shrink-0 self-start sm:self-center" asChild>
+          <Link to="/reserves#villa-ebreichsdorf">View dossier</Link>
+        </Button>
+      </section>
 
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
