@@ -1,32 +1,64 @@
 # Building Culture — Onchain Savings Club
 
-Public app repo for **[app.buildingculture.capital](https://app.buildingculture.capital)** (subdomain). The marketing site at **buildingculture.capital** can stay on your existing host; DNS only adds an **`app`** record to this stack.
+Web app for **[app.buildingculture.capital](https://app.buildingculture.capital)** — a community-focused interface for vaults, DAO governance, learning routes, and treasury visibility on **Base** (mainnet or Sepolia, configured via env).
 
-**Stack:** React (Vite) + Hono (Node) + optional Docker Compose. On-chain features use Base / Base Sepolia (see `.env.example`).
+The main marketing site at **buildingculture.capital** can stay on your existing host. This codebase only needs DNS for the **`app`** subdomain pointing at the server that runs it.
 
-**Repository:** [github.com/Laszlo23/buildingculture-app](https://github.com/Laszlo23/buildingculture-app) (public)
+## Stack
 
-## Local development
+| Layer | Tech |
+|--------|------|
+| UI | React 18, Vite, Tailwind, shadcn/ui, wagmi/viem |
+| API | Hono (Node), on-chain reads & signed txs |
+| Contracts | Solidity (Hardhat) — see `contracts/` |
+| Deploy | Static `dist/` + API; optional Docker (`docker-compose.yml`) |
+
+## Requirements
+
+- **Node.js** 20+ (22 recommended)
+- **npm** 10+
+- Optional: **Docker** + Docker Compose for production-style runs
+
+## Setup
 
 ```bash
 npm install
-cp .env.example .env   # fill in keys (never commit .env)
-npm run dev              # UI :8080, API on PORT (default 3001)
+cp .env.example .env
 ```
 
-## Production deploy
+Edit `.env` with RPC/Alchemy, contract addresses, server signer key, and chain id. Never commit `.env` (it is gitignored).
 
-Full steps (nginx, TLS, Docker): **[deploy/DEPLOY.md](deploy/DEPLOY.md)**.
+## Development
 
-Quick path on a VPS with Docker + Node:
+Runs the Vite dev server on port **8080** and the Hono API on **PORT** from `.env** (default **3001**), with `/api` proxied from the browser.
+
+```bash
+npm run dev
+```
+
+Open `http://localhost:8080`.
+
+## Production build
+
+Sets canonical / Open Graph origin for the public URL:
 
 ```bash
 export VITE_SITE_ORIGIN=https://app.buildingculture.capital
-./scripts/docker-up.sh   # builds dist + docker compose (API + nginx on 127.0.0.1:8080)
+npm run build:prod
 ```
 
-Put host HTTPS in front of `http://127.0.0.1:8080` (see `deploy/nginx-host-ssl-to-docker.conf.example`).
+Serve `dist/` behind nginx (or use Docker) and run the API with `npm run start` or the container image — see **[deploy/DEPLOY.md](deploy/DEPLOY.md)**.
+
+Quick Docker path on a server:
+
+```bash
+./scripts/docker-up.sh
+```
+
+## Repository
+
+**[github.com/Laszlo23/buildingculture-app](https://github.com/Laszlo23/buildingculture-app)** — public.
 
 ## License
 
-No license file is set in this repository yet; add one if you need explicit terms for reuse.
+No license file is included yet; add one (e.g. MIT/Apache-2.0) if you want to specify terms for reuse.

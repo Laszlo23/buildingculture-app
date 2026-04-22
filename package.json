@@ -1,5 +1,5 @@
 {
-  "name": "vite_react_shadcn_ts",
+  "name": "buildingculture-app",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -104,7 +104,6 @@
     "globals": "^15.15.0",
     "hardhat": "^2.22.18",
     "jsdom": "^20.0.3",
-    "lovable-tagger": "^1.1.13",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.8.3",
