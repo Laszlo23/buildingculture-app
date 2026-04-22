@@ -52,6 +52,33 @@ sudo mkdir -p /var/www/buildingculture/app
 sudo chown -R "$USER":"$USER" /var/www/buildingculture/app
 ```
 
+### Option A — Docker Compose (API in Docker, static build on the host)
+
+Install Docker:
+
+```bash
+sudo apt install -y docker.io docker-compose-plugin
+sudo usermod -aG docker "$USER"
+# log out and back in so `docker` works without sudo
+```
+
+Then clone, configure `.env` (same as below), and from the app directory:
+
+```bash
+export VITE_SITE_ORIGIN=https://app.buildingculture.capital
+./scripts/docker-up.sh
+```
+
+This runs `npm ci` + `npm run build:prod` (needs `.env` for Vite / Alchemy / Web3.bio) and starts **`docker compose`**: nginx on **`127.0.0.1:8080`** + API container on port 3001 (internal). Put **host nginx + TLS** in front by proxying `https://app.buildingculture.capital` → `http://127.0.0.1:8080` (see `deploy/nginx-host-ssl-to-docker.conf.example`). Use Let’s Encrypt on the host for `app.buildingculture.capital`.
+
+Updates: `git pull && ./scripts/docker-up.sh` (set `FORCE_BUILD=1` to force a fresh `npm run build`).
+
+---
+
+### Option B — No Docker (Node + systemd + nginx serving `dist/`)
+
+Continue with sections 4–8 below.
+
 ## 4. Clone and configure
 
 ```bash

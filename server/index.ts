@@ -375,8 +375,10 @@ app.post("/api/tasks/daily/complete", async (c) => {
 });
 
 const port = getEnv().PORT;
-console.log(`API listening on http://127.0.0.1:${port}`);
+/** `0.0.0.0` in Docker; default `127.0.0.1` for local dev. */
+const listenHost = process.env.API_LISTEN_HOST?.trim() || "127.0.0.1";
+console.log(`API listening on http://${listenHost}:${port}`);
 console.log(
   "[api] Routes include GET /api/tasks/daily, /api/profile, /api/community/messages — if any 404 while older routes work, restart this process (stale tsx node).",
 );
-serve({ fetch: app.fetch, port, hostname: "127.0.0.1" });
+serve({ fetch: app.fetch, port, hostname: listenHost });

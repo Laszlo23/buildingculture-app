@@ -16,6 +16,8 @@ See **[deploy/DEPLOY.md](deploy/DEPLOY.md)** for nginx, systemd, TLS, and deploy
 
 The main site at **`buildingculture.capital`** can stay on your existing host; only the **`app`** subdomain needs to point at the VPS running this stack.
 
+**Docker (optional):** with `.env` in place, run `./scripts/docker-up.sh` on the server (see **Option A** in `deploy/DEPLOY.md`). This agent cannot SSH into your VPS; you run that command after `git pull`.
+
 Build for production (sets canonical/OG site origin):
 
 ```bash
