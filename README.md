@@ -14,6 +14,8 @@ npm run dev            # API + Vite (UI on :8080, API on PORT from .env)
 
 See **[deploy/DEPLOY.md](deploy/DEPLOY.md)** for nginx, systemd, TLS, and deploying to **`app.buildingculture.capital`**.
 
+The main site at **`buildingculture.capital`** can stay on your existing host; only the **`app`** subdomain needs to point at the VPS running this stack.
+
 Build for production (sets canonical/OG site origin):
 
 ```bash

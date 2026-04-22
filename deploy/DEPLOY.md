@@ -2,9 +2,30 @@
 
 Stack: **Vite static** (`dist/`) behind **nginx**, **Hono** API on `127.0.0.1:PORT` (default `3001`), TLS via **Let’s Encrypt**.
 
+## Main site vs this app
+
+The **marketing / main site** at `buildingculture.capital` (and often `www`) can stay on your existing host (e.g. **Onchain** or any other provider). **Do not** move the apex domain to this VPS unless you intend to host that site here.
+
+This deployment is **only** for the **subdomain**:
+
+| Host | Typical setup |
+|------|----------------|
+| `buildingculture.capital`, `www.buildingculture.capital` | Unchanged — keep current DNS / hosting (ogchain, etc.) |
+| `app.buildingculture.capital` | **New** A (or AAAA) record → **this VPS** IP only |
+
+You are adding a **single DNS label** (`app`) so the React app and API live under the subdomain without affecting the root site.
+
 ## 1. DNS
 
-Add an **A record**: `app.buildingculture.capital` → your VPS public IPv4 (or AAAA for IPv6).
+Add an **A record** for the **subdomain only**: `app` → `app.buildingculture.capital` resolves to your **VPS** public IPv4 (or use **AAAA** for IPv6).
+
+At your DNS registrar (where `buildingculture.capital` is managed), create:
+
+- **Name / host:** `app` (some UIs show `app.buildingculture.capital` as the full name)
+- **Type:** A
+- **Value:** your VPS IPv4
+
+Do **not** change the root `@` or `www` records unless you know you want them on this server.
 
 ## 2. Push this repo to GitHub
 
