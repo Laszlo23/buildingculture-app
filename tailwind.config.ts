@@ -103,6 +103,23 @@ export default {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-8px)" },
         },
+        /** Vault beginner onboarding card — slow mesh motion */
+        "onboarding-aurora": {
+          "0%, 100%": { backgroundPosition: "0% 50%" },
+          "50%": { backgroundPosition: "100% 50%" },
+        },
+        "onboarding-drift-a": {
+          "0%, 100%": { transform: "translate(0%, 0%) scale(1)" },
+          "50%": { transform: "translate(6%, -12%) scale(1.12)" },
+        },
+        "onboarding-drift-b": {
+          "0%, 100%": { transform: "translate(0%, 0%) scale(1.05)" },
+          "50%": { transform: "translate(-10%, 10%) scale(1)" },
+        },
+        "onboarding-drift-c": {
+          "0%, 100%": { transform: "translate(-4%, 6%) scale(1)" },
+          "50%": { transform: "translate(8%, -4%) scale(1.08)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -111,6 +128,10 @@ export default {
         "pulse-glow": "pulse-glow 3s ease-in-out infinite",
         "shimmer": "shimmer 2.5s linear infinite",
         "float": "float 4s ease-in-out infinite",
+        "onboarding-aurora": "onboarding-aurora 16s ease-in-out infinite",
+        "onboarding-drift-a": "onboarding-drift-a 22s ease-in-out infinite",
+        "onboarding-drift-b": "onboarding-drift-b 28s ease-in-out infinite",
+        "onboarding-drift-c": "onboarding-drift-c 18s ease-in-out infinite",
       },
     },
   },

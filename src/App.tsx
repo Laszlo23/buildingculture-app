@@ -24,6 +24,8 @@ import { InvestorPage } from "./pages/InvestorPage";
 import { LeaderboardPage } from "./pages/LeaderboardPage";
 import { InvitesPage } from "./pages/InvitesPage";
 import { InvitePage } from "./pages/InvitePage";
+import { TeamPage } from "./pages/TeamPage";
+import { StrategyBacktestRoadmapPage } from "./pages/StrategyBacktestRoadmapPage";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +42,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/vault" element={wrap(<VaultPage />)} />
             <Route path="/strategies" element={wrap(<StrategiesPage />)} />
+            <Route path="/strategies/backtest-roadmap" element={wrap(<StrategyBacktestRoadmapPage />)} />
             <Route path="/strategies/:strategyId" element={wrap(<StrategyDetailPage />)} />
             <Route path="/reserves" element={wrap(<ReservesPage />)} />
             <Route path="/portfolio" element={wrap(<PortfolioPage />)} />
@@ -54,6 +57,7 @@ const App = () => (
             <Route path="/leaderboard" element={wrap(<LeaderboardPage />)} />
             <Route path="/invites" element={wrap(<InvitesPage />)} />
             <Route path="/invite/:address" element={wrap(<InvitePage />)} />
+            <Route path="/team" element={wrap(<TeamPage />)} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

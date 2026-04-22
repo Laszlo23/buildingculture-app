@@ -172,6 +172,23 @@ export const governanceDaoAbi = [
     ],
     outputs: [{ type: "uint256" }],
   },
+  {
+    type: "function",
+    name: "votingPower",
+    stateMutability: "view",
+    inputs: [{ name: "account", type: "address" }],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "setVotingPower",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "account", type: "address" },
+      { name: "weight", type: "uint256" },
+    ],
+    outputs: [],
+  },
 ] as const;
 
 /** Soulbound learning / activity credentials (LearningAchievement.sol) */

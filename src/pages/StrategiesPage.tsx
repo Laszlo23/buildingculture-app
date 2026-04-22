@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { Search, SlidersHorizontal, Loader2 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Search, SlidersHorizontal, Loader2, LineChart } from "lucide-react";
 import { strategies as staticStrategies } from "@/data/club";
 import { StrategyCard } from "@/components/StrategyCard";
 import { Button } from "@/components/ui/button";
@@ -51,9 +52,15 @@ export const StrategiesPage = () => {
 
       <header className="space-y-4">
         <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
+          <div className="space-y-2">
             <h1 className="font-display text-3xl font-semibold tracking-tight">Strategy Explorer</h1>
             <p className="text-muted-foreground text-sm mt-1">Browse all on-chain strategies governed by the DAO.</p>
+            <Button variant="outline" size="sm" className="rounded-xl gap-2 w-fit" asChild>
+              <Link to="/strategies/backtest-roadmap">
+                <LineChart className="w-4 h-4 text-primary" />
+                Backtest & builder roadmap
+              </Link>
+            </Button>
           </div>
           <div className="flex items-center gap-3">
             <div className="glass rounded-xl px-4 py-2.5">

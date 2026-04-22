@@ -6,7 +6,7 @@ import {
   Loader2,
   ExternalLink,
   CheckCircle2,
-  Circle,
+  CalendarCheck,
   Share2,
   MessageSquare,
   Flame,
@@ -31,6 +31,12 @@ import { FarcasterProfileCard } from "@/components/social/FarcasterProfileCard";
 
 function isRecord(x: unknown): x is Record<string, unknown> {
   return typeof x === "object" && x !== null && !Array.isArray(x);
+}
+
+function dailyTaskIcon(id: string) {
+  if (id === "check_in") return CalendarCheck;
+  if (id === "share_x") return Share2;
+  return MessageSquare;
 }
 
 function Web3BioCards({ payload }: { payload: unknown }) {
@@ -247,19 +253,28 @@ export const ProfilePage = () => {
         </div>
       </header>
 
-      {/* Daily tasks */}
-      <section className="glass-card p-6 space-y-4">
-        <div className="flex flex-wrap items-center gap-2">
+      {/* Daily tasks — quest board */}
+      <section className="relative overflow-hidden rounded-2xl border border-primary/20 shadow-[inset_0_1px_0_0_hsl(var(--primary)/0.08)]">
+        <div
+          className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/[0.08] via-transparent to-amber-500/[0.06]"
+          aria-hidden
+        />
+        <div className="relative space-y-4 p-6 backdrop-blur-sm">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="font-display font-semibold text-lg">Daily growth</h2>
           {daily && (
-            <Badge variant="secondary" className="gap-1">
-              <Flame className="w-3 h-3 text-warning" /> {daily.streak} day streak
-            </Badge>
-          )}
-          {daily && (
-            <span className="text-xs text-muted-foreground">UTC day: {daily.date}</span>
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Quest board</span>
           )}
         </div>
+        {daily && (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-500/30 bg-gradient-to-r from-amber-500/18 via-warning/12 to-amber-600/10 px-4 py-2.5 dark:from-amber-500/12 dark:via-warning/10 dark:to-amber-950/30">
+            <div className="flex items-center gap-2 text-sm font-semibold text-amber-950 dark:text-amber-50">
+              <Flame className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400 motion-safe:animate-pulse" />
+              <span>{daily.streak} day streak</span>
+            </div>
+            <span className="font-mono text-[10px] text-muted-foreground">UTC {daily.date}</span>
+          </div>
+        )}
         {dailyLoading && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Loader2 className="w-4 h-4 animate-spin" /> Loading tasks…
@@ -274,30 +289,39 @@ export const ProfilePage = () => {
           <ul className="space-y-3">
             {(daily.definitions ?? []).map(def => {
               const done = daily.tasks?.[def.id] ?? false;
+              const TaskIcon = dailyTaskIcon(def.id);
               return (
                 <li
                   key={def.id}
                   className={cn(
-                    "flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border p-4",
-                    done ? "border-primary/40 bg-primary/5" : "border-border/60 bg-secondary/20",
+                    "flex flex-col gap-3 rounded-xl border p-4 sm:flex-row sm:items-center",
+                    done
+                      ? "border-primary/40 bg-primary/[0.1] shadow-[inset_4px_0_0_0_hsl(var(--primary))]"
+                      : "border-border/60 bg-secondary/25",
                   )}
                 >
-                  <div className="flex items-start gap-3 flex-1 min-w-0">
-                    {done ? (
-                      <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                    ) : (
-                      <Circle className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
-                    )}
-                    <div>
-                      <div className="font-medium text-sm">{def.title}</div>
+                  <div className="flex min-w-0 flex-1 items-start gap-3">
+                    <div
+                      className={cn(
+                        "mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border",
+                        done
+                          ? "border-primary/45 bg-primary text-primary-foreground shadow-[0_0_20px_-6px_hsl(var(--primary)/0.5)]"
+                          : "border-primary/25 bg-primary/10 text-primary",
+                      )}
+                    >
+                      {done ? <CheckCircle2 className="h-5 w-5" /> : <TaskIcon className="h-4 w-4" />}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium">{def.title}</div>
                       <p className="text-xs text-muted-foreground">{def.description}</p>
                     </div>
                   </div>
-                  <div className="flex flex-wrap gap-2 shrink-0">
+                  <div className="flex shrink-0 flex-wrap gap-2">
                     {def.id === "check_in" && (
                       <Button
                         type="button"
                         size="sm"
+                        variant={done ? "secondary" : "default"}
                         className="rounded-xl min-h-[44px]"
                         disabled={done || completeMut.isPending}
                         onClick={() => completeMut.mutate({ address: address!, taskId: "check_in" })}
@@ -345,10 +369,11 @@ export const ProfilePage = () => {
             })}
           </ul>
         )}
-        <p className="text-[10px] text-muted-foreground border-l-2 border-border pl-3">
+        <p className="border-l-2 border-border pl-3 text-[10px] text-muted-foreground">
           Tasks reset at UTC midnight. Posting in Member Chat auto-completes Community pulse when the API records your
           message.
         </p>
+        </div>
       </section>
 
       {/* Public wealth */}

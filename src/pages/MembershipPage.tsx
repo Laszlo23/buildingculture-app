@@ -1,6 +1,7 @@
 import { Gem, Check, Sparkles, Vote, Coins, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import { LearningBadgesStrip } from "@/components/learning/LearningBadgesStrip";
 import { VaultPatronClaim } from "@/components/learning/VaultPatronClaim";
 import { learningNftPerks } from "@/data/nftPerks";
@@ -40,7 +41,23 @@ export const MembershipPage = () => {
         <p className="text-muted-foreground text-sm mt-1">Your NFT is your access pass, governance weight and rewards multiplier.</p>
       </header>
 
-      <section className="glass-card p-6 space-y-4">
+      <section className="relative overflow-hidden rounded-2xl border border-white/[0.08] shadow-[0_0_0_1px_hsl(var(--primary)/0.08),inset_0_1px_0_0_hsl(var(--primary)/0.06)]">
+        <div className="pointer-events-none absolute inset-0" aria-hidden>
+          <div className="absolute inset-0 bg-gradient-mesh opacity-35 motion-reduce:opacity-25" />
+          <div
+            className={cn(
+              "absolute inset-[-20%] opacity-40 motion-reduce:hidden",
+              "bg-[length:200%_200%] animate-onboarding-aurora",
+            )}
+            style={{
+              backgroundImage:
+                "linear-gradient(125deg, hsl(var(--primary) / 0.22) 0%, transparent 45%, hsl(var(--gold) / 0.14) 55%, transparent 78%)",
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-card/55 to-card" />
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/35 to-transparent" />
+        </div>
+        <div className="relative space-y-4 p-6 backdrop-blur-sm">
         <div className="flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-gold" />
           <h2 className="font-display text-lg font-semibold">Learning & activity credentials</h2>
@@ -50,7 +67,7 @@ export const MembershipPage = () => {
         </p>
         <LearningBadgesStrip />
         <VaultPatronClaim />
-        <div className="overflow-x-auto pt-2 border-t border-border/60">
+        <div className="overflow-x-auto border-t border-border/60 pt-2">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-muted-foreground text-xs uppercase tracking-wider">
@@ -71,6 +88,7 @@ export const MembershipPage = () => {
               ))}
             </tbody>
           </table>
+        </div>
         </div>
       </section>
 

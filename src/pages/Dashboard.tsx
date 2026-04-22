@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useConnection } from "wagmi";
@@ -19,9 +20,19 @@ import { ProtocolCoreFrame } from "@/components/dashboard/ProtocolCoreFrame";
 import { ClubMemberPulse } from "@/components/dashboard/ClubMemberPulse";
 import { ProtocolPulseBeacon } from "@/components/dashboard/ProtocolPulseBeacon";
 import { strategies as staticStrategies, userStats, growthData as fallbackGrowth } from "@/data/club";
-import { mergeStrategiesForUi, useChainConfig, useClaimYieldMutation, usePortfolio, useProposals, useTreasury } from "@/hooks/useChainData";
+import {
+  mergeStrategiesForUi,
+  qk,
+  useChainConfig,
+  useClaimYieldMutation,
+  usePortfolio,
+  useProposals,
+  useTreasury,
+} from "@/hooks/useChainData";
 import { useRecordReferral } from "@/hooks/useReferral";
 import { riskScoreToOutOf10 } from "@/lib/riskDisplay";
+import { chainApi } from "@/lib/api";
+import { toast } from "sonner";
 import { getLeadReserveImagePath, publicAssetSrc } from "@/data/realAssets";
 
 const COLOR_HSL = {
@@ -39,9 +50,11 @@ function queryErrorMessage(e: unknown): string {
 
 export const Dashboard = () => {
   const [claimOpen, setClaimOpen] = useState(false);
+  const qc = useQueryClient();
   const { status, address } = useConnection();
   const recordReferral = useRecordReferral();
   const didAttemptReferral = useRef(false);
+  const didWealthSnapshotForDao = useRef(false);
   const { data: chainConfig } = useChainConfig();
   const {
     data: portfolio,
@@ -125,6 +138,36 @@ export const Dashboard = () => {
       },
     );
   }, [address, recordReferral]);
+
+  /** One snapshot per session so investors can receive optional DAO voting-power rewards (server-gated). */
+  useEffect(() => {
+    if (!address || didWealthSnapshotForDao.current) return;
+    const k = `osc_wealth_snap_${address.toLowerCase()}`;
+    if (sessionStorage.getItem(k)) {
+      didWealthSnapshotForDao.current = true;
+      return;
+    }
+    didWealthSnapshotForDao.current = true;
+    void chainApi
+      .postWealthSnapshot({ address })
+      .then((r) => {
+        try {
+          sessionStorage.setItem(k, "1");
+        } catch {
+          /* ignore */
+        }
+        if (r.daoVotingReward?.status === "granted") {
+          toast.success("DAO voting power updated", {
+            description: "Member reward recorded on-chain.",
+          });
+          void qc.invalidateQueries({ queryKey: qk.portfolio });
+        }
+      })
+      .catch(() => {
+        didWealthSnapshotForDao.current = false;
+      });
+  }, [address, qc]);
+
   const activeProposals = (proposalsList ?? []).filter(p => p.status === "active");
   const displayProposals = activeProposals.slice(0, 3);
   const voteParticipationIndex =

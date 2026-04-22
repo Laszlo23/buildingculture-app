@@ -72,6 +72,34 @@ export const recordReferralBody = z.object({
   invitee: z.string().regex(/^0x[a-fA-F0-9]{40}$/i),
 });
 
+/** Binance Spot GET /api/v3/klines — server proxy only */
+export const binanceKlinesQuery = z.object({
+  symbol: z
+    .string()
+    .min(4)
+    .max(24)
+    .transform((s) => s.replace(/\s+/g, "").toUpperCase())
+    .refine((s) => /^[A-Z0-9]+$/.test(s), { message: "symbol must be alphanumeric (e.g. BTCUSDT)" }),
+  interval: z.enum([
+    "1m",
+    "3m",
+    "5m",
+    "15m",
+    "30m",
+    "1h",
+    "2h",
+    "4h",
+    "6h",
+    "8h",
+    "12h",
+    "1d",
+    "3d",
+    "1w",
+    "1M",
+  ]),
+  limit: z.coerce.number().int().min(1).max(1000).optional().default(100),
+});
+
 /** BaseAI building-culture-club pipe: single turn or custom message list (after system messages on server). */
 export const buildingCulturePipeBody = z
   .object({

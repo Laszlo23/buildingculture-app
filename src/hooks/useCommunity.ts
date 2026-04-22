@@ -31,6 +31,7 @@ export function usePostCommunityMessageMutation() {
         address: vars.address.toLowerCase() as `0x${string}`,
         text: vars.text.trim(),
         createdAt: new Date().toISOString(),
+        role: "user",
       };
       qc.setQueryData<{ messages: ChatMessageDto[] }>(qk.communityMessages, (old) => ({
         messages: [...(old?.messages ?? []), optimistic],

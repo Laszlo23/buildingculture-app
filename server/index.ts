@@ -38,11 +38,13 @@ import {
   wealthRangeParam,
   wealthSnapshotBody,
   recordReferralBody,
+  binanceKlinesQuery,
   voteBody,
   withdrawBody,
 } from "./validation.ts";
 import { getReferralStats, leaderboardByInvites, recordReferral } from "./services/referralStore.ts";
 import { appendMessage, listMessages } from "./services/chatStore.ts";
+import { scheduleCommunityBuilderChatReply } from "./services/communityAgentChatReply.ts";
 import { getProfile, putProfile } from "./services/profileStore.ts";
 import { getAllLatestSnapshots } from "./services/wealthHistoryStore.ts";
 import {
@@ -57,10 +59,18 @@ import {
 import { getWealthHistory } from "./services/wealthHistoryStore.ts";
 import { completeTask, getDailySnapshot } from "./services/dailyTasksStore.ts";
 import { fetchVaultSavingsForAddress } from "./services/portfolio.ts";
+import {
+  tryGrantLearnRouteReward,
+  tryGrantLearnCredentialNftReward,
+  tryGrantVaultMemberReward,
+  tryGrantVaultPatronNftReward,
+} from "./services/daoVotingRewards.js";
 import { buildProtocolPulse } from "./services/protocolPulse.ts";
+import { fetchBinanceKlines } from "./services/binanceKlines.ts";
 import { registerAiRoutes } from "./routes/ai.js";
 import { registerSocialRoutes } from "./routes/social.js";
 import { initAppDatabase } from "./lib/db.js";
+import { isAiConfigured, isCommunityAgentInChatEnabled } from "./lib/aiEnv.js";
 
 initAppDatabase();
 
@@ -107,9 +117,19 @@ app.get("/api/wallet", (c) => {
 app.get("/api/config", (c) => {
   try {
     const env = getEnv();
+    let binanceHost = "api.binance.com";
+    try {
+      binanceHost = new URL(env.BINANCE_API_BASE).host;
+    } catch {
+      /* keep default */
+    }
     return c.json({
       chainId: env.CHAIN_ID,
       chainName: getChain().name,
+      ai: {
+        langbaseConfigured: isAiConfigured(),
+        communityAgentInChat: isCommunityAgentInChatEnabled(),
+      },
       contracts: {
         vault: env.VAULT_CONTRACT,
         treasury: env.TREASURY_CONTRACT,
@@ -120,9 +140,34 @@ app.get("/api/config", (c) => {
       },
       assetDecimals: env.ASSET_DECIMALS,
       vaultPatronMinDeposit: env.VAULT_PATRON_MIN_DEPOSIT,
+      binance: {
+        /** API key present on server (never exposed to client) */
+        apiKeyConfigured: Boolean(env.BINANCE_API_KEY),
+        /** REST host derived from BINANCE_API_BASE */
+        restHost: binanceHost,
+      },
     });
   } catch (e) {
     return c.json({ error: serializeError(e) }, 500);
+  }
+});
+
+/** Server-side Binance Spot klines proxy — add BINANCE_API_KEY in .env for higher rate limits (optional). */
+app.get("/api/market/binance/klines", async (c) => {
+  try {
+    const q = binanceKlinesQuery.parse({
+      symbol: c.req.query("symbol") ?? "BTCUSDT",
+      interval: c.req.query("interval") ?? "1m",
+      limit: c.req.query("limit") ?? "24",
+    });
+    const data = await fetchBinanceKlines({
+      symbol: q.symbol,
+      interval: q.interval,
+      limit: q.limit,
+    });
+    return c.json(data);
+  } catch (e) {
+    return c.json({ error: formatRouteError(e) }, 400);
   }
 });
 
@@ -228,12 +273,13 @@ app.post("/api/governance/vote", async (c) => {
 app.post("/api/learning/complete", async (c) => {
   try {
     const body = learningCompleteBody.parse(await c.req.json());
-    const addr = body.address as `0x${string}`;
+    const addr = body.address.toLowerCase() as `0x${string}`;
     if (!answersMatch(body.routeId as RouteId, body.answers)) {
       return c.json({ error: { message: "Quiz answers do not match the answer key." } }, 400);
     }
     markRouteComplete(addr, body.routeId as RouteId);
-    return c.json({ ok: true, routeId: body.routeId });
+    const daoVotingReward = await tryGrantLearnRouteReward(addr, body.routeId as RouteId);
+    return c.json({ ok: true, routeId: body.routeId, daoVotingReward });
   } catch (e) {
     return c.json({ error: formatRouteError(e) }, 400);
   }
@@ -269,7 +315,8 @@ app.post("/api/nft/claim-learning", async (c) => {
       return c.json({ error: { message: "This credential was already minted for your address." } }, 400);
     }
     const result = await mintAchievement(addr, t);
-    return c.json(result);
+    const daoVotingReward = await tryGrantLearnCredentialNftReward(addr, routeId);
+    return c.json({ ...result, daoVotingReward });
   } catch (e) {
     return c.json({ error: formatRouteError(e) }, 400);
   }
@@ -299,7 +346,8 @@ app.post("/api/nft/claim-vault-patron", async (c) => {
       return c.json({ error: { message: "Vault Patron was already minted for your address." } }, 400);
     }
     const result = await mintAchievement(addr, t);
-    return c.json(result);
+    const daoVotingReward = await tryGrantVaultPatronNftReward(addr);
+    return c.json({ ...result, daoVotingReward });
   } catch (e) {
     return c.json({ error: formatRouteError(e) }, 400);
   }
@@ -362,6 +410,7 @@ app.post("/api/community/messages", async (c) => {
     const body = postCommunityMessageBody.parse(await c.req.json());
     const addr = body.address as `0x${string}`;
     const msg = appendMessage(addr, body.text);
+    scheduleCommunityBuilderChatReply();
     return c.json({ message: msg });
   } catch (e) {
     return c.json({ error: formatRouteError(e) }, 400);
@@ -445,7 +494,14 @@ app.post("/api/wealth/snapshot", async (c) => {
     const addr = body.address.toLowerCase() as `0x${string}`;
     const portfolio = await fetchPortfolioForAddress(addr);
     recordWealthForAddress(addr, portfolio);
-    return c.json({ ok: true, address: addr, vault: portfolio.totalSavings, yield: portfolio.yieldEarned });
+    const daoVotingReward = await tryGrantVaultMemberReward(addr);
+    return c.json({
+      ok: true,
+      address: addr,
+      vault: portfolio.totalSavings,
+      yield: portfolio.yieldEarned,
+      daoVotingReward,
+    });
   } catch (e) {
     return c.json({ error: formatRouteError(e) }, 400);
   }

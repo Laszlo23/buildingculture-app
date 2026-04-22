@@ -38,15 +38,19 @@ export function LearningBadgesStrip({ className }: { className?: string }) {
         <div
           key={b.id}
           className={cn(
-            "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium",
+            "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-shadow",
             b.minted
-              ? "border-primary/40 bg-primary/10 text-primary"
-              : "border-border/60 bg-secondary/30 text-muted-foreground",
+              ? "border border-transparent bg-gradient-to-br from-primary/18 via-primary/8 to-primary/5 text-primary shadow-[0_0_0_1px_hsl(var(--primary)/0.35),0_6px_18px_-8px_hsl(var(--primary)/0.25)]"
+              : "border border-dashed border-muted-foreground/40 bg-secondary/25 text-muted-foreground",
           )}
         >
-          <Award className="w-3.5 h-3.5 shrink-0" />
+          <Award className="h-3.5 w-3.5 shrink-0" />
           <span>{b.name}</span>
-          {b.minted ? <span className="text-[10px] opacity-80">minted</span> : <span className="text-[10px]">locked</span>}
+          {b.minted ? (
+            <span className="text-[10px] opacity-80">minted</span>
+          ) : (
+            <span className="text-[10px]">locked</span>
+          )}
         </div>
       ))}
     </div>

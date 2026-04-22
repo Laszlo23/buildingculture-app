@@ -39,8 +39,31 @@ export function initAppDatabase() {
       completed_at TEXT NOT NULL,
       PRIMARY KEY (address, route_id)
     );
+
+    CREATE TABLE IF NOT EXISTS dao_voting_rewards (
+      address TEXT NOT NULL,
+      reward_key TEXT NOT NULL,
+      tx_hash TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      PRIMARY KEY (address, reward_key)
+    );
+    CREATE INDEX IF NOT EXISTS idx_dao_voting_rewards_address ON dao_voting_rewards(address);
   `);
+  migrateChatMessageColumnsIfNeeded();
   migrateFromJsonIfNeeded();
+}
+
+/** Add agent role columns for Community Builder in-thread messages (idempotent). */
+function migrateChatMessageColumnsIfNeeded() {
+  const d = getDb();
+  const cols = d.prepare("PRAGMA table_info(chat_messages)").all() as { name: string }[];
+  const names = new Set(cols.map(c => c.name));
+  if (!names.has("role")) {
+    d.exec("ALTER TABLE chat_messages ADD COLUMN role TEXT NOT NULL DEFAULT 'user'");
+  }
+  if (!names.has("agent_key")) {
+    d.exec("ALTER TABLE chat_messages ADD COLUMN agent_key TEXT");
+  }
 }
 
 function migrateFromJsonIfNeeded() {

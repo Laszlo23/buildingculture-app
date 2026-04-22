@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useChainConfig } from "@/hooks/useChainData";
 import { WalletConnectButton } from "@/components/wallet/WalletConnectButton";
+import { GmMicroFinancingFab } from "@/components/tips/GmMicroFinancingFab";
 
 const iconMap = {
   LayoutDashboard,
@@ -35,7 +36,9 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
     (location.pathname.startsWith("/investor") ? "Investor profile" : null) ??
     (location.pathname === "/leaderboard" ? "Leaderboard" : null) ??
     (location.pathname === "/invites" ? "Referral invites" : null) ??
-    (location.pathname.startsWith("/invite/") ? "Referral" : null);
+    (location.pathname.startsWith("/invite/") ? "Referral" : null) ??
+    (location.pathname === "/team" ? "Team" : null) ??
+    (location.pathname === "/strategies/backtest-roadmap" ? "Backtest roadmap" : null);
   const { data: chainCfg } = useChainConfig();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
@@ -236,11 +239,30 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
           {children}
         </main>
 
-        <footer className="border-t border-border/60 px-6 lg:px-10 py-6 text-xs text-muted-foreground flex flex-wrap items-center justify-between gap-2">
-          <span>© 2026 Onchain Savings Club DAO · All strategies fully on-chain</span>
-          <span className="font-mono">v2.4.1 · contract 0x9e…f3a2</span>
+        <footer className="border-t border-border/60 px-6 lg:px-10 py-6 text-xs text-muted-foreground flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span>© 2026 Onchain Savings Club DAO · All strategies fully on-chain</span>
+            <span className="hidden sm:inline text-border">|</span>
+            <Link
+              to="/team"
+              className="text-foreground/80 hover:text-primary transition-colors font-medium"
+            >
+              Team
+            </Link>
+            <a
+              href="https://buildingculture.capital/team"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-primary transition-colors underline-offset-4 hover:underline"
+            >
+              buildingculture.capital/team
+            </a>
+          </div>
+          <span className="font-mono shrink-0">v2.4.1 · contract 0x9e…f3a2</span>
         </footer>
       </div>
+
+      <GmMicroFinancingFab />
     </div>
   );
 };

@@ -11,6 +11,7 @@ import { useCommunityMessagesQuery, usePostCommunityMessageMutation } from "@/ho
 import { useFarcasterBatchQuery } from "@/hooks/useFarcaster";
 import { FarcasterHandlePill } from "@/components/social/FarcasterProfileCard";
 import { ClubAIPanel } from "@/components/community/ClubAIPanel";
+import { CommunityBuilderPanel } from "@/components/community/CommunityBuilderPanel";
 
 const rankColor = (rank: number) =>
   rank === 1 ? "text-gold" : rank === 2 ? "text-muted-foreground" : rank === 3 ? "text-warning" : "text-foreground";
@@ -22,7 +23,10 @@ export const CommunityPage = () => {
   const postMut = usePostCommunityMessageMutation();
 
   const messages = data?.messages ?? [];
-  const chatAddresses = useMemo(() => messages.map((m) => m.address), [messages]);
+  const chatAddresses = useMemo(
+    () => messages.filter(m => m.role !== "agent").map(m => m.address),
+    [messages],
+  );
   const { data: farcasterByAddr } = useFarcasterBatchQuery(chatAddresses);
   const connected = status === "connected" && address;
 
@@ -125,6 +129,8 @@ export const CommunityPage = () => {
             Demo mode: messages are stored by wallet address without cryptographic signatures.
           </p>
 
+          <CommunityBuilderPanel />
+
           <div className="space-y-3 mb-4 flex-1 max-h-[400px] overflow-y-auto min-h-[200px]">
             {isLoading && (
               <div className="flex items-center justify-center py-8 text-muted-foreground text-sm gap-2">
@@ -139,22 +145,35 @@ export const CommunityPage = () => {
             )}
             {!isLoading &&
               messages.map(m => {
-                const you = connected && address?.toLowerCase() === m.address.toLowerCase();
+                const isAgent = m.role === "agent";
+                const you = !isAgent && connected && address?.toLowerCase() === m.address.toLowerCase();
                 return (
                   <div
                     key={m.id}
                     className={cn(
                       "p-3 rounded-xl border",
-                      you ? "border-primary/30 bg-primary/5" : "border-border/60 bg-secondary/30",
+                      isAgent && "border-info/35 bg-info/[0.08] shadow-[inset_3px_0_0_0_hsl(var(--info)/0.55)]",
+                      !isAgent && you && "border-primary/30 bg-primary/5",
+                      !isAgent && !you && "border-border/60 bg-secondary/30",
                     )}
                   >
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <InvestorAddressLink address={m.address} className="text-xs font-medium" />
-                      {farcasterByAddr?.users?.[m.address.toLowerCase()] && (
+                      {isAgent ? (
+                        <span className="text-xs font-semibold text-info">Community Builder</span>
+                      ) : (
+                        <InvestorAddressLink address={m.address} className="text-xs font-medium" />
+                      )}
+                      {!isAgent && farcasterByAddr?.users?.[m.address.toLowerCase()] && (
                         <FarcasterHandlePill user={farcasterByAddr.users[m.address.toLowerCase()]!} />
                       )}
-                      <Badge variant="outline" className="text-[9px] border-border/60 py-0">
-                        Member
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          "text-[9px] py-0",
+                          isAgent ? "border-info/40 text-info" : "border-border/60",
+                        )}
+                      >
+                        {isAgent ? "AI · club" : "Member"}
                       </Badge>
                       <span className="text-[10px] text-muted-foreground ml-auto">
                         {formatRelativeTime(m.createdAt)}

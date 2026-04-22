@@ -1,8 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { qk } from "@/hooks/useChainData";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useConnection } from "wagmi";
-import { chainApi, explorerTxUrl, type TxResult } from "@/lib/api";
+import { chainApi, explorerTxUrl, type NftMintWithDaoReward } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -20,13 +21,17 @@ export function VaultPatronClaim({ className }: { className?: string }) {
 
   const claim = useMutation({
     mutationFn: () => chainApi.claimVaultPatron({ address: address! }),
-    onSuccess: (data: TxResult) => {
+    onSuccess: (data: NftMintWithDaoReward) => {
       toast.success("Vault Patron minted", {
         action: {
           label: "BaseScan",
           onClick: () => window.open(explorerTxUrl(data.chainId, data.txHash), "_blank"),
         },
       });
+      if (data.daoVotingReward?.status === "granted") {
+        toast.success("DAO member reward", { description: "Governance voting weight increased on-chain." });
+        void qc.invalidateQueries({ queryKey: qk.portfolio });
+      }
       void qc.invalidateQueries({ queryKey: qkElig(address) });
       void qc.invalidateQueries({ queryKey: qkBadges(address) });
     },

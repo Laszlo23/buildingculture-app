@@ -181,6 +181,33 @@ export type TxResult = {
   chainId: number;
 };
 
+/** Server-side GovernanceDAO.setVotingPower bump (optional; see DAO_VOTING_REWARDS_ENABLED). */
+export type DaoVotingRewardDto =
+  | { status: "disabled" }
+  | { status: "skipped"; reason: "already_granted" | "below_min_vault" }
+  | { status: "granted"; txHash: string; newWeight: string; rewardKey: string }
+  | { status: "failed"; message: string; rewardKey: string };
+
+export type NftMintWithDaoReward = TxResult & { daoVotingReward: DaoVotingRewardDto };
+
+export type BinanceCandleDto = {
+  openTime: number;
+  open: string;
+  high: string;
+  low: string;
+  close: string;
+  volume: string;
+  closeTime: number;
+};
+
+export type BinanceKlinesDto = {
+  baseUrl: string;
+  symbol: string;
+  interval: string;
+  limit: number;
+  candles: BinanceCandleDto[];
+};
+
 export type NftRouteEligibility = {
   completed: boolean;
   mintedOnChain: boolean;
@@ -210,6 +237,9 @@ export type ChatMessageDto = {
   address: string;
   text: string;
   createdAt: string;
+  /** Present when server supports agent rows in Member Chat. */
+  role?: "user" | "agent";
+  agentKey?: string | null;
 };
 
 /** Farcaster (Neynar) — server proxy, no key in the client bundle. */
@@ -350,7 +380,17 @@ export const chainApi = {
       contracts: Record<string, string | null>;
       assetDecimals: number;
       vaultPatronMinDeposit?: number;
+      binance?: { apiKeyConfigured: boolean; restHost: string };
+      ai?: { langbaseConfigured: boolean; communityAgentInChat: boolean };
     }>("/api/config"),
+
+  getBinanceKlines: (params: { symbol: string; interval: string; limit?: number }) => {
+    const q = new URLSearchParams();
+    q.set("symbol", params.symbol);
+    q.set("interval", params.interval);
+    if (params.limit != null) q.set("limit", String(params.limit));
+    return apiGet<BinanceKlinesDto>(`/api/market/binance/klines?${q.toString()}`);
+  },
   portfolio: () => apiGet<PortfolioDto>("/api/portfolio"),
   treasury: () => apiGet<TreasuryDto>("/api/treasury"),
   /** Protocol “secret weapon”: sub-second read bundle for dashboards and embeds. */
@@ -382,7 +422,10 @@ export const chainApi = {
   nftBadges: (address: string) =>
     apiGet<NftBadgesDto>(`/api/nft/badges?address=${encodeURIComponent(address)}`),
   learningComplete: (body: { address: string; routeId: "rwa" | "authenticity" | "truth"; answers: number[] }) =>
-    apiPost<{ ok: boolean; routeId: string }, typeof body>("/api/learning/complete", body),
+    apiPost<{ ok: boolean; routeId: string; daoVotingReward: DaoVotingRewardDto }, typeof body>(
+      "/api/learning/complete",
+      body,
+    ),
 
   /** Story-quiz completion stored server-side (SQLite). */
   getLearningProgress: (address: string) =>
@@ -390,9 +433,9 @@ export const chainApi = {
       routes: Partial<Record<"rwa" | "authenticity" | "truth", { completedAt: string }>>;
     }>(`/api/learning/progress?address=${encodeURIComponent(address)}`),
   claimLearningNft: (body: { address: string; routeId: "rwa" | "authenticity" | "truth" }) =>
-    apiPost<TxResult, typeof body>("/api/nft/claim-learning", body),
+    apiPost<NftMintWithDaoReward, typeof body>("/api/nft/claim-learning", body),
   claimVaultPatron: (body: { address: string }) =>
-    apiPost<TxResult, typeof body>("/api/nft/claim-vault-patron", body),
+    apiPost<NftMintWithDaoReward, typeof body>("/api/nft/claim-vault-patron", body),
 
   communityMessages: () => apiGet<{ messages: ChatMessageDto[] }>("/api/community/messages"),
 
@@ -428,6 +471,12 @@ export const chainApi = {
       body,
     ),
 
+  askCommunityBuilder: (body: BuildingCulturePipeRequest) =>
+    apiPost<BuildingCulturePipeResponseDto, BuildingCulturePipeRequest>(
+      "/api/ai/pipe/community-builder",
+      body,
+    ),
+
   getProfile: (address: string) =>
     apiGet<{ profile: MemberProfileDto }>(`/api/profile?address=${encodeURIComponent(address)}`),
 
@@ -445,10 +494,10 @@ export const chainApi = {
     ),
 
   postWealthSnapshot: (body: { address: string }) =>
-    apiPost<{ ok: boolean; address: string; vault: number; yield: number }, typeof body>(
-      "/api/wealth/snapshot",
-      body,
-    ),
+    apiPost<
+      { ok: boolean; address: string; vault: number; yield: number; daoVotingReward: DaoVotingRewardDto },
+      typeof body
+    >("/api/wealth/snapshot", body),
 
   getLeaderboard: () => apiGet<LeaderboardDto>("/api/leaderboard"),
 

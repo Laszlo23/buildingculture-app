@@ -27,18 +27,60 @@ export function VaultBeginnerOnboarding({ walletConnected, savings, portfolioLoa
   return (
     <section
       id="beginner-vault-onboarding"
-      className="glass-card overflow-hidden border-primary/20 shadow-[0_0_0_1px_hsl(var(--primary)/0.08)]"
+      className={cn(
+        "glass-card relative overflow-hidden rounded-2xl",
+        "border-primary/35 [box-shadow:var(--shadow-card),0_0_48px_-10px_hsl(var(--primary)/0.28),0_0_0_1px_hsl(var(--primary)/0.12),inset_0_1px_0_0_hsl(var(--primary)/0.08)]",
+      )}
       aria-labelledby="beginner-vault-title"
     >
+      {/* Animated backdrop — disabled when user prefers reduced motion */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl" aria-hidden>
+        <div
+          className={cn(
+            "absolute inset-[-20%] opacity-70 motion-reduce:hidden",
+            "bg-[length:200%_200%] animate-onboarding-aurora",
+          )}
+          style={{
+            backgroundImage:
+              "linear-gradient(118deg, hsl(var(--primary) / 0.42) 0%, transparent 38%, hsl(var(--gold) / 0.28) 52%, transparent 68%, hsl(170 80% 45% / 0.32) 85%, transparent 100%)",
+          }}
+        />
+        <div
+          className={cn(
+            "absolute -left-[20%] -top-[40%] h-[95%] w-[65%] rounded-full",
+            "bg-primary/25 blur-[72px] motion-reduce:hidden animate-onboarding-drift-a will-change-transform",
+          )}
+        />
+        <div
+          className={cn(
+            "absolute -bottom-[35%] -right-[15%] h-[85%] w-[55%] rounded-full",
+            "bg-gold/20 blur-[64px] motion-reduce:hidden animate-onboarding-drift-b will-change-transform",
+          )}
+        />
+        <div
+          className={cn(
+            "absolute left-[30%] top-[20%] h-[50%] w-[45%] rounded-full",
+            "bg-[hsl(var(--primary-glow)/0.18)] blur-[56px] motion-reduce:hidden animate-onboarding-drift-c will-change-transform",
+          )}
+        />
+        <div className="absolute inset-0 grid-bg opacity-[0.14] motion-reduce:opacity-[0.08]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-card/20 via-transparent to-card/75" />
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-80" />
+        {/* Static mesh for reduced-motion */}
+        <div className="absolute inset-0 hidden motion-reduce:block bg-gradient-mesh opacity-40" />
+      </div>
+
       <div className="relative px-5 py-5 sm:px-6 sm:py-6">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-transparent to-gold/5 pointer-events-none" />
         <div className="relative space-y-4">
           <div className="flex flex-wrap items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
-              <Sparkles className="w-5 h-5 text-primary" />
+            <div className="w-10 h-10 rounded-xl bg-primary/20 border border-primary/35 flex items-center justify-center shrink-0 shadow-[0_0_24px_hsl(var(--primary)/0.25)] backdrop-blur-sm">
+              <Sparkles className="w-5 h-5 text-primary motion-safe:animate-pulse" />
             </div>
             <div className="min-w-0 flex-1 space-y-1">
-              <h2 id="beginner-vault-title" className="font-display text-lg sm:text-xl font-semibold tracking-tight">
+              <h2
+                id="beginner-vault-title"
+                className="font-display text-lg sm:text-xl font-semibold tracking-tight text-gradient-primary"
+              >
                 Start your first on-chain savings
               </h2>
               <p className="text-sm text-muted-foreground leading-relaxed">

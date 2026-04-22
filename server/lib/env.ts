@@ -34,6 +34,32 @@ const envSchema = z
     .default("0x0000000000000000000000000000000000000000"),
   /** Minimum vault savings (asset decimals) to mint Vault Patron (achievement type 4) */
   VAULT_PATRON_MIN_DEPOSIT: z.coerce.number().optional().default(100),
+  /**
+   * When true, server may call GovernanceDAO.setVotingPower after verified member actions
+   * (quiz pass, wealth snapshot with min vault, vault patron NFT mint). Requires PRIVATE_KEY to be DAO owner.
+   */
+  DAO_VOTING_REWARDS_ENABLED: z.preprocess((v) => {
+    if (v === undefined || v === null || v === "") return false;
+    const t = String(v).trim().toLowerCase();
+    return t === "1" || t === "true" || t === "yes";
+  }, z.boolean()).default(false),
+  /** wei-style uint256 increment for learning-route rewards (default ~0.01 voting weight) */
+  DAO_REWARD_LEARN_WEI: z.string().regex(/^\d+$/).optional().default("10000000000000000"),
+  /** increment when member meets min vault on snapshot / vault patron NFT (default ~0.05) */
+  DAO_REWARD_VAULT_MEMBER_WEI: z.string().regex(/^\d+$/).optional().default("50000000000000000"),
+  /**
+   * Optional Binance API key (server-only — never add VITE_* or expose to browser).
+   * Public klines work without a key; a key can improve rate-limit weight on some plans.
+   */
+  BINANCE_API_KEY: z.preprocess((v) => (v === "" || v == null ? undefined : String(v).trim()), z.string().min(1).optional()),
+  /** Spot REST root (default mainnet). Testnet example: https://testnet.binance.vision */
+  BINANCE_API_BASE: z.preprocess(
+    (v) => {
+      const s = typeof v === "string" ? v.trim() : "";
+      return s.length > 0 ? s : "https://api.binance.com";
+    },
+    z.string().url(),
+  ),
 })
   .refine(
     (d) => Boolean(d.RPC_URL?.trim()) || Boolean(d.ALCHEMY_API_KEY?.trim()),

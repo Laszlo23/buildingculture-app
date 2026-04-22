@@ -54,6 +54,13 @@ export const DAOPage = () => {
         <div>
           <h1 className="font-display text-3xl font-semibold tracking-tight">DAO Governance</h1>
           <p className="text-muted-foreground text-sm mt-1">Vote on treasury, strategies, real-asset acquisitions and risk parameters.</p>
+          <p className="text-[11px] text-muted-foreground/90 mt-2 max-w-xl leading-relaxed">
+            Member rewards (operator opt-in): completing Academy quizzes, minting credentials, vault patron milestones, and
+            syncing your investor snapshot can increase on-chain{" "}
+            <span className="text-foreground/85 font-medium">GovernanceDAO voting weight</span> — not an ERC-20 transfer;
+            the club signer must be DAO owner. See <code className="text-[10px]">DAO_VOTING_REWARDS_ENABLED</code> in{" "}
+            <code className="text-[10px]">.env.example</code>.
+          </p>
         </div>
         <div className="flex items-center gap-3">
           <div className="glass rounded-xl px-4 py-2.5">
