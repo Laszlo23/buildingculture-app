@@ -6,6 +6,7 @@ COPY package.json package-lock.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 
 COPY tsconfig.json tsconfig.node.json ./
+COPY src/contracts ./src/contracts
 COPY server ./server
 
 ENV NODE_ENV=production
