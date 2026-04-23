@@ -58,6 +58,8 @@ SYNC_ENV=1 ./scripts/deploy-from-env.sh
 
 You can also set `DEPLOY_PATH` in `.env` or export it before running.
 
+If the VPS uses a **non-default SSH port**, set `SSH_OPTS` with `-o Port=PORT` (not `ssh`’s `-p`), so the same options work for both `ssh` and `scp` during env sync.
+
 ## 3. VPS: Node.js and app directory
 
 Example (Ubuntu):
