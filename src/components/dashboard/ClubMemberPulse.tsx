@@ -29,15 +29,17 @@ export function ClubMemberPulse({ totalMembers, strategyCount, loading }: Props)
         <p className="text-[11px] sm:text-xs text-muted-foreground flex items-center justify-center sm:justify-start gap-1.5">
           <Users className="w-3.5 h-3.5 text-primary/80 shrink-0" aria-hidden />
           <span>
-            {loading && "Member activity…"}
+            {loading && "Loading member snapshot…"}
             {!loading && hasMembers && (
               <>
-                <span className="text-foreground/90 font-medium tabular-nums">{fmt(n)}</span> savers in the pool
+                <span className="text-foreground/90 font-medium tabular-nums">{fmt(n)}</span> members saving on-chain
                 <span className="text-muted-foreground"> · </span>
-                <span>club growth tracks with TVL</span>
+                <span>pool size grows with deposits</span>
               </>
             )}
-            {!loading && !hasMembers && "Member count syncs on-chain as the pool grows — you’re early."}
+            {!loading &&
+              !hasMembers &&
+              "Member totals sync from on-chain data as the pool grows — early members are building the graph with us."}
           </span>
         </p>
         <p className="text-[10px] sm:text-[11px] text-muted-foreground/90 flex items-center justify-center sm:justify-end gap-1.5 sm:shrink-0">

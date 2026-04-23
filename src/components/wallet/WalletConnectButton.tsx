@@ -39,7 +39,16 @@ function shortAddr(a: string) {
 const disconnectedPrimaryClass =
   "rounded-xl font-semibold gap-2 shadow-glow bg-gradient-primary text-primary-foreground hover:opacity-90 border-0";
 
-export function WalletConnectButton({ disconnectedPrimary = false }: { disconnectedPrimary?: boolean }) {
+type WalletConnectButtonProps = {
+  disconnectedPrimary?: boolean;
+  /** When set with `disconnectedPrimary`, replaces “Get Started” / primary disconnected label (e.g. dashboard onboarding). */
+  disconnectedLabel?: string;
+};
+
+export function WalletConnectButton({
+  disconnectedPrimary = false,
+  disconnectedLabel,
+}: WalletConnectButtonProps) {
   const { address, chainId, status } = useConnection();
   const inFarcasterMiniApp = useIsFarcasterMiniApp();
   const rawConnectors = useConnectors();
@@ -63,6 +72,13 @@ export function WalletConnectButton({ disconnectedPrimary = false }: { disconnec
 
   const relayerShort =
     relayer?.address && !relayerError ? shortAddr(relayer.address) : null;
+
+  const primaryDisconnectedText =
+    disconnectedPrimary && disconnectedLabel?.trim()
+      ? disconnectedLabel.trim()
+      : disconnectedPrimary
+        ? "Get Started"
+        : null;
 
   async function handleConnect(connector: Connector) {
     try {
@@ -102,7 +118,7 @@ export function WalletConnectButton({ disconnectedPrimary = false }: { disconnec
             <Wallet className="w-4 h-4 shrink-0" />
           )}
           <span className={disconnectedPrimary ? "text-sm" : "text-xs"}>
-            {disconnectedPrimary ? "Get Started" : `Connect ${c.name}`}
+            {primaryDisconnectedText ?? `Connect ${c.name}`}
           </span>
         </Button>
       );
@@ -123,7 +139,7 @@ export function WalletConnectButton({ disconnectedPrimary = false }: { disconnec
               <Wallet className="w-4 h-4 shrink-0" />
             )}
             <span className={disconnectedPrimary ? "text-sm" : "text-xs"}>
-              {disconnectedPrimary ? "Get Started" : "Connect wallet"}
+              {primaryDisconnectedText ?? "Connect wallet"}
             </span>
             <ChevronDown className="w-4 h-4 opacity-60 shrink-0" />
           </Button>

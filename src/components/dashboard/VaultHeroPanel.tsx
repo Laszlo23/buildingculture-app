@@ -74,8 +74,11 @@ export function VaultHeroPanel({
         <p className="text-center text-sm text-gradient-primary font-medium mt-2 max-w-md mx-auto leading-relaxed">
           {SITE_TAGLINE}
         </p>
-        <p className="text-center text-xs text-muted-foreground/80 mt-1.5 max-w-lg mx-auto">
-          Deposit. Earn yield. Automatically diversified.
+        <p className="text-center text-sm text-muted-foreground mt-2 max-w-xl mx-auto leading-relaxed">
+          A simple way to grow crypto using automated on-chain strategies.
+        </p>
+        <p className="text-center text-xs text-muted-foreground/85 mt-1.5 max-w-lg mx-auto">
+          Deposit when you are ready — yield routes across diversified strategies.
         </p>
 
         {portfolioWarnings && portfolioWarnings.length > 0 ? (

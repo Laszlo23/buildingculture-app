@@ -142,15 +142,31 @@ export function VaultBeginnerOnboarding({
             <span>Setup takes about 2–3 minutes.</span>
           </div>
 
-          <p className="flex items-start gap-2 text-xs text-muted-foreground border-l-2 border-primary/35 pl-3 py-0.5">
-            <Shield className="w-3.5 h-3.5 shrink-0 mt-0.5 text-primary/70" />
-            <span>Your funds stay in your wallet until you deposit.</span>
-          </p>
+          <div
+            className={cn(
+              "rounded-xl border border-primary/30 bg-primary/[0.06] px-3.5 py-3 sm:px-4 space-y-2",
+              "text-xs sm:text-sm text-muted-foreground leading-relaxed",
+            )}
+          >
+            <div className="flex items-start gap-2">
+              <Shield className="w-4 h-4 shrink-0 mt-0.5 text-primary" aria-hidden />
+              <div className="space-y-1.5">
+                <p className="font-medium text-foreground/95">Your keys, your crypto</p>
+                <p>
+                  Your funds stay in your wallet until you confirm a deposit. Moving savings into the vault requires a
+                  transaction you sign — the app cannot spend your assets without that approval.
+                </p>
+              </div>
+            </div>
+          </div>
 
           <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 pt-1">
             {!walletConnected ? (
               <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
-                <WalletConnectButton disconnectedPrimary />
+                <WalletConnectButton
+                  disconnectedPrimary
+                  disconnectedLabel="Start saving →"
+                />
               </div>
             ) : (
               <Button className="rounded-xl bg-gradient-primary text-primary-foreground hover:opacity-90 shadow-glow gap-2" asChild>

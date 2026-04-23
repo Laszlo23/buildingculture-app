@@ -30,6 +30,7 @@ import type { MemberProfileDto } from "@/lib/api";
 import { web3BioAvatarSrc } from "@/lib/web3bioFetch";
 import { FarcasterProfileCard } from "@/components/social/FarcasterProfileCard";
 import { XProfileCard } from "@/components/social/XProfileCard";
+import { XTimelineEmbed } from "@/components/social/XTimelineEmbed";
 import { xHandleFromSocialInput } from "@/lib/xSocial";
 
 function isRecord(x: unknown): x is Record<string, unknown> {
@@ -509,10 +510,11 @@ export const ProfilePage = () => {
         <div>
           <h2 className="font-display font-semibold text-lg">X profile</h2>
           <p className="text-xs text-muted-foreground mt-0.5 max-w-prose">
-            When your <strong>X (Twitter) URL</strong> above includes a handle, we can fetch public profile fields via the
-            X API v2 (uses your <span className="font-mono text-[10px]">developer.x.com</span> credits — each lookup
-            is billed). Server: <code className="text-[10px]">X_API_BEARER_TOKEN</code> or{" "}
-            <code className="text-[10px]">X_API_KEY</code> + <code className="text-[10px]">X_API_SECRET</code> — never exposed to the browser.
+            When your <strong>X (Twitter) URL</strong> includes a handle, a <strong>Latest on X</strong> timeline appears
+            below (official embed — no API key required; ad blockers may hide it). Optional: fetch profile metrics via X
+            API v2 (uses <span className="font-mono text-[10px]">developer.x.com</span> credits per lookup). Server:{" "}
+            <code className="text-[10px]">X_API_BEARER_TOKEN</code> or <code className="text-[10px]">X_API_KEY</code> +{" "}
+            <code className="text-[10px]">X_API_SECRET</code> — never exposed to the browser.
           </p>
         </div>
         {!xHandle && (
@@ -545,6 +547,11 @@ export const ProfilePage = () => {
         {xHandle && !xLoading && !xIsError && xUserRes && xUserRes.configured && !("error" in xUserRes) && xUserRes.user && (
           <XProfileCard user={xUserRes.user} />
         )}
+        {xHandle ? (
+          <div className="pt-2">
+            <XTimelineEmbed username={xHandle} />
+          </div>
+        ) : null}
       </section>
 
       {/* Web3.bio */}
