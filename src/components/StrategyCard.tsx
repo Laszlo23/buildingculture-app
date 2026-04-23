@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { getStrategyNarrative } from "@/data/strategyNarratives";
 import { cn } from "@/lib/utils";
 import {
   Building2, Bitcoin, Brain, Droplets, Layers, Palette, Boxes,
@@ -36,6 +37,7 @@ interface StrategyCardProps {
 export const StrategyCard = ({ strategy }: StrategyCardProps) => {
   const Icon = iconMap[strategy.icon as keyof typeof iconMap] ?? Building2;
   const c = colorMap[strategy.color as keyof typeof colorMap];
+  const narrative = getStrategyNarrative(strategy.id);
 
   // Mini sparkline points
   const points = Array.from({ length: 24 }, (_, i) =>
@@ -56,6 +58,9 @@ export const StrategyCard = ({ strategy }: StrategyCardProps) => {
             <div>
               <h3 className="font-display font-semibold text-base leading-tight">{strategy.name}</h3>
               <span className="text-xs text-muted-foreground">{strategy.type}</span>
+              {narrative?.hook ? (
+                <p className={cn("mt-1 text-[11px] font-semibold leading-snug", c.text)}>{narrative.hook}</p>
+              ) : null}
             </div>
           </div>
           <RiskBadge risk={strategy.risk} score={strategy.riskScore} />
@@ -105,9 +110,14 @@ export const StrategyCard = ({ strategy }: StrategyCardProps) => {
           </div>
         </div>
 
-        <Button variant="ghost" size="sm" className="w-full justify-between rounded-xl border border-border/60 hover:border-primary/40 hover:bg-primary/5" asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full justify-between rounded-xl border border-border/60 hover:border-primary/40 hover:bg-primary/5 font-semibold"
+          asChild
+        >
           <Link to={`/strategies/${strategy.id}`}>
-            View strategy
+            Read the story
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </Button>

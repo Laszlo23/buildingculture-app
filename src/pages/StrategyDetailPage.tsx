@@ -11,6 +11,7 @@ import {
   Boxes,
   Loader2,
   ExternalLink,
+  Sparkles,
 } from "lucide-react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { TransactionConfirmDialog } from "@/components/TransactionConfirmDialog";
@@ -28,6 +29,9 @@ import {
 import { explorerAddressUrl, explorerTxUrl } from "@/lib/api";
 import { buildDeployedContractStripEntries } from "@/lib/deployedContracts";
 import { disclosureForRegistryIndex } from "@/data/strategyOnchain";
+import { getStrategyNarrative } from "@/data/strategyNarratives";
+import { StrategyStoryPanel } from "@/components/strategies/StrategyStoryPanel";
+import { setPageSeo } from "@/lib/pageSeo";
 import { cn } from "@/lib/utils";
 
 const iconMap = { Building2, Bitcoin, Brain, Droplets, Layers, Palette, Boxes };
@@ -54,10 +58,21 @@ export const StrategyDetailPage = () => {
   const merged = useMemo(() => mergeStrategiesForUi(portfolio, staticStrategies), [portfolio]);
   const strategy = merged.find(s => s.id === strategyId);
   const staticIdx = staticStrategies.findIndex(s => s.id === strategyId);
+  const narrative = getStrategyNarrative(strategyId);
 
   useEffect(() => {
     if (staticIdx >= 0) setStrategyIdField(String(staticIdx));
   }, [staticIdx]);
+
+  useEffect(() => {
+    if (!strategy) return;
+    const path = `/strategies/${strategy.id}`;
+    return setPageSeo({
+      title: `${strategy.name} — how it works | Onchain Savings Club`,
+      description: `${strategy.description} Educational walkthrough: mechanics, pros & cons, and a member pro tip — not financial advice.`,
+      canonicalPath: path,
+    });
+  }, [strategy?.id, strategy?.name, strategy?.description]);
 
   const Icon = strategy
     ? iconMap[strategy.icon as keyof typeof iconMap] ?? Building2
@@ -130,25 +145,36 @@ export const StrategyDetailPage = () => {
       <header className="flex flex-col md:flex-row md:items-start gap-6">
         <div
           className={cn(
-            "w-16 h-16 rounded-2xl flex items-center justify-center shrink-0",
-            strategy.color === "gold" && "bg-gold/15 text-gold",
-            strategy.color === "info" && "bg-info/15 text-info",
-            strategy.color === "warning" && "bg-warning/15 text-warning",
-            !["gold", "info", "warning"].includes(strategy.color) && "bg-primary/15 text-primary",
+            "w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 ring-2 ring-offset-2 ring-offset-background",
+            strategy.color === "gold" && "bg-gold/15 text-gold ring-gold/30",
+            strategy.color === "info" && "bg-info/15 text-info ring-info/30",
+            strategy.color === "warning" && "bg-warning/15 text-warning ring-warning/30",
+            !["gold", "info", "warning"].includes(strategy.color) && "bg-primary/15 text-primary ring-primary/30",
           )}
         >
           <Icon className="w-8 h-8" />
         </div>
-        <div className="space-y-2 flex-1">
-          <h1 className="font-display text-3xl font-semibold tracking-tight">{strategy.name}</h1>
-          <p className="text-muted-foreground leading-relaxed">{strategy.description}</p>
-          <div className="flex flex-wrap items-center gap-3 pt-2">
+        <div className="space-y-3 flex-1">
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/5 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary/90">
+            <Sparkles className="h-3 w-3" />
+            Strategy deep dive
+          </div>
+          <h1 className="font-display text-3xl sm:text-4xl font-semibold tracking-tight">{strategy.name}</h1>
+          {narrative && (
+            <p className="text-sm sm:text-base font-medium text-foreground/90 leading-snug italic border-l-2 border-primary/40 pl-3">
+              {narrative.hook}
+            </p>
+          )}
+          <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">{strategy.description}</p>
+          <div className="flex flex-wrap items-center gap-3 pt-1">
             <div className="font-mono-num text-2xl font-bold text-primary">{strategy.apy.toFixed(1)}% APY</div>
             <RiskBadge risk={strategy.risk} score={strategy.riskScore} />
             <span className="text-sm text-muted-foreground">Target allocation {strategy.allocation}%</span>
           </div>
         </div>
       </header>
+
+      {narrative && <StrategyStoryPanel narrative={narrative} color={strategy.color} />}
 
       <section className="glass-card p-6 space-y-2">
         <h2 className="font-display font-semibold">Yield source</h2>

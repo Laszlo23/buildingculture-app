@@ -32,6 +32,7 @@ import { AgentsPage } from "./pages/AgentsPage";
 import { BlogIndexPage } from "./pages/BlogIndexPage";
 import { BlogPostPage } from "./pages/BlogPostPage";
 import { PlatformRoadmapPage } from "./pages/PlatformRoadmapPage";
+import { EcosystemPage } from "./pages/EcosystemPage";
 import { FarcasterMiniAppHost } from "./components/farcaster/FarcasterMiniAppHost";
 
 const queryClient = new QueryClient();
@@ -62,6 +63,7 @@ const App = () => (
             <Route path="/blog" element={wrap(<BlogIndexPage />)} />
             <Route path="/blog/:slug" element={wrap(<BlogPostPage />)} />
             <Route path="/roadmap" element={wrap(<PlatformRoadmapPage />)} />
+            <Route path="/ecosystem" element={wrap(<EcosystemPage />)} />
             <Route path="/dao" element={wrap(<DAOPage />)} />
             <Route path="/agents" element={wrap(<AgentsPage />)} />
             <Route path="/community" element={wrap(<CommunityPage />)} />

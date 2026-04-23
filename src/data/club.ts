@@ -29,6 +29,7 @@ export const navSidebarGroups: { label: string; items: NavItem[] }[] = [
     items: [
       { name: "Blog", path: "/blog", icon: "BookOpen" },
       { name: "Platform roadmap", path: "/roadmap", icon: "Milestone" },
+      { name: "Ecosystem thanks", path: "/ecosystem", icon: "Handshake" },
     ],
   },
   {
@@ -49,6 +50,7 @@ export const footerNavLinks: { name: string; path: string }[] = [
   { name: "Learning hub", path: "/learn" },
   { name: "Leaderboard", path: "/leaderboard" },
   { name: "Invites", path: "/invites" },
+  { name: "Ecosystem thanks", path: "/ecosystem" },
   { name: "Transparency", path: "/transparency" },
   { name: "Contracts", path: "/contracts" },
   { name: "Agents", path: "/agents" },

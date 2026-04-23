@@ -54,7 +54,11 @@ export const StrategiesPage = () => {
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="space-y-2">
             <h1 className="font-display text-3xl font-semibold tracking-tight">Strategy Explorer</h1>
-            <p className="text-muted-foreground text-sm mt-1">Browse all on-chain strategies governed by the DAO.</p>
+            <p className="text-muted-foreground text-sm mt-1 max-w-xl leading-relaxed">
+              Each card opens a <span className="text-foreground/90 font-medium">story-first deep dive</span> — how the
+              sleeve tries to earn, where ROI can come from, honest cons, and a member pro tip. Still governed by the DAO
+              registry; numbers may merge with live data when connected.
+            </p>
             <Button variant="outline" size="sm" className="rounded-xl gap-2 w-fit" asChild>
               <Link to="/strategies/backtest-roadmap">
                 <LineChart className="w-4 h-4 text-primary" />

@@ -15,6 +15,7 @@ import {
   BookOpen,
   Milestone,
   Library,
+  Handshake,
 } from "lucide-react";
 import { footerNavLinks, navItems, navSidebarGroups } from "@/data/club";
 import { getBlogTitleForSlug } from "@/content/blog/registry";
@@ -40,6 +41,7 @@ const iconMap = {
   BookOpen,
   Milestone,
   Library,
+  Handshake,
 };
 
 function navTitleForPath(pathname: string): string | null {

@@ -90,6 +90,14 @@ export const TransparencyPage = () => {
           </Link>{" "}
           <span className="text-muted-foreground">— every deployed club contract with BaseScan links.</span>
         </p>
+        <p className="text-sm">
+          <Link to="/ecosystem" className="text-primary font-medium hover:underline">
+            Ecosystem thanks
+          </Link>{" "}
+          <span className="text-muted-foreground">
+            — shout-outs to Ethereum, Base, L2 peers, Farcaster, and the open-source stacks we build on.
+          </span>
+        </p>
       </header>
 
       <section className="glass-card p-6 space-y-4">
