@@ -22,6 +22,8 @@
     "deploy:dao": "hardhat run scripts/deploy-governance-dao.cjs",
     "deploy:learning-nft": "hardhat run scripts/deploy-learning-nft.cjs --network baseSepolia",
     "deploy:learning-nft:mainnet": "hardhat run scripts/deploy-learning-nft.cjs --network base",
+    "deploy:club-citizen-pass": "hardhat run scripts/deploy-club-citizen-pass.cjs --network baseSepolia",
+    "deploy:club-citizen-pass:mainnet": "hardhat run scripts/deploy-club-citizen-pass.cjs --network base",
     "deploy:villa-poc:sepolia": "hardhat run scripts/deploy-villa-bonding-curve.cjs --network baseSepolia",
     "deploy:villa-poc:mainnet": "hardhat run scripts/deploy-villa-bonding-curve.cjs --network base",
     "baseai": "baseai",

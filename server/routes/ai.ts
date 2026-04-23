@@ -1,11 +1,13 @@
 import { Pipe } from "@baseai/core";
 import type { PipeI } from "@baseai/core";
 import type { Context, Hono } from "hono";
+import { isAddress } from "viem";
 import { ZodError } from "zod";
 import { agentPipeFactories, listAgentPipeIds } from "../agents/agentAdapters.js";
 import { isAiConfigured } from "../lib/aiEnv.js";
-import { allowAiPipeRequest, clientKeyFromRequest } from "../services/aiPipeRateLimit.js";
 import { sanitizeModelReply } from "../lib/sanitizeModelText.js";
+import { allowAiPipeRequest, clientKeyFromRequest } from "../services/aiPipeRateLimit.js";
+import { membershipNftConfigured, readCitizenPassBalance } from "../services/membershipNft.ts";
 import { serializeError } from "../services/tx.ts";
 import { buildingCulturePipeBody } from "../validation.ts";
 
@@ -71,7 +73,7 @@ export function registerAiRoutes(app: Hono) {
   });
 
   const handlePipe =
-    (factory: () => PipeI) =>
+    (factory: () => PipeI, pipeId: string) =>
     async (c: Context) => {
       if (!isAiConfigured()) {
         return c.json(notConfiguredResponse(), 503);
@@ -94,6 +96,33 @@ export function registerAiRoutes(app: Hono) {
         return c.json({ error: { message: zodMessage(parsed.error) } }, 400);
       }
 
+      if (pipeId === "building-culture-club" && membershipNftConfigured()) {
+        const wa = parsed.data.walletAddress;
+        if (!wa || !isAddress(wa)) {
+          return c.json(
+            {
+              error: {
+                message:
+                  "walletAddress (0x + 40 hex) is required for Club AI while Citizen membership is enforced on the server.",
+              },
+            },
+            400,
+          );
+        }
+        const bal = await readCitizenPassBalance(wa.toLowerCase() as `0x${string}`);
+        if (bal === 0n) {
+          return c.json(
+            {
+              error: {
+                message:
+                  "Citizen membership NFT required for Club AI. Mint a Citizen pass on the Membership page (/membership).",
+              },
+            },
+            403,
+          );
+        }
+      }
+
       try {
         const payload = await runLangbasePipeCompletion(parsed.data, factory);
         return c.json(payload);
@@ -103,6 +132,6 @@ export function registerAiRoutes(app: Hono) {
     };
 
   for (const id of listAgentPipeIds()) {
-    app.post(`/api/ai/pipe/${id}`, handlePipe(agentPipeFactories[id]));
+    app.post(`/api/ai/pipe/${id}`, handlePipe(agentPipeFactories[id], id));
   }
 }

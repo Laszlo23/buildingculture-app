@@ -10,5 +10,6 @@ export function contractAddresses() {
     assetToken: (e.ASSET_TOKEN ?? "0x0000000000000000000000000000000000000000") as `0x${string}`,
     assetDecimals: e.ASSET_DECIMALS,
     learningNft: (e.LEARNING_NFT_CONTRACT ?? "0x0000000000000000000000000000000000000000") as `0x${string}`,
+    membershipNft: (e.MEMBERSHIP_NFT_CONTRACT ?? "0x0000000000000000000000000000000000000000") as `0x${string}`,
   };
 }

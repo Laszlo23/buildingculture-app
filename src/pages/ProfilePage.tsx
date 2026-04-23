@@ -26,6 +26,7 @@ import {
 } from "@/hooks/useCommunity";
 import { useFarcasterQuery } from "@/hooks/useFarcaster";
 import { useXUserQuery } from "@/hooks/useXUser";
+import { toast } from "sonner";
 import type { MemberProfileDto } from "@/lib/api";
 import { web3BioAvatarSrc } from "@/lib/web3bioFetch";
 import { FarcasterProfileCard } from "@/components/social/FarcasterProfileCard";
@@ -280,9 +281,16 @@ export const ProfilePage = () => {
         </div>
         {daily && (
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-500/30 bg-gradient-to-r from-amber-500/18 via-warning/12 to-amber-600/10 px-4 py-2.5 dark:from-amber-500/12 dark:via-warning/10 dark:to-amber-950/30">
-            <div className="flex items-center gap-2 text-sm font-semibold text-amber-950 dark:text-amber-50">
-              <Flame className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400 motion-safe:animate-pulse" />
-              <span>{daily.streak} day streak</span>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3 gap-1">
+              <div className="flex items-center gap-2 text-sm font-semibold text-amber-950 dark:text-amber-50">
+                <Flame className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400 motion-safe:animate-pulse" />
+                <span>{daily.streak} day streak</span>
+              </div>
+              {daily.growth ? (
+                <span className="text-[11px] text-amber-900/80 dark:text-amber-100/90 font-mono-num">
+                  {daily.growth.communityXp.toLocaleString()} community XP · {daily.growth.tierName}
+                </span>
+              ) : null}
             </div>
             <span className="font-mono text-[10px] text-muted-foreground">UTC {daily.date}</span>
           </div>
@@ -336,7 +344,16 @@ export const ProfilePage = () => {
                         variant={done ? "secondary" : "default"}
                         className="rounded-xl min-h-[44px]"
                         disabled={done || completeMut.isPending}
-                        onClick={() => completeMut.mutate({ address: address!, taskId: "check_in" })}
+                        onClick={() =>
+                          completeMut.mutate(
+                            { address: address!, taskId: "check_in" },
+                            {
+                              onError: e =>
+                                toast.error(e instanceof Error ? e.message : "Could not check in"),
+                              onSuccess: () => toast.success("Checked in — XP saved."),
+                            },
+                          )
+                        }
                       >
                         {done ? "Done" : "Check in"}
                       </Button>
@@ -353,9 +370,23 @@ export const ProfilePage = () => {
                           size="sm"
                           className="rounded-xl min-h-[44px]"
                           disabled={done || completeMut.isPending}
-                          onClick={() => completeMut.mutate({ address: address!, taskId: "share_x" })}
+                          onClick={() =>
+                            completeMut.mutate(
+                              { address: address!, taskId: "share_x" },
+                              {
+                                onError: e =>
+                                  toast.error(e instanceof Error ? e.message : "Could not verify share"),
+                                onSuccess: () =>
+                                  toast.success(
+                                    daily?.capabilities?.shareXVerify
+                                      ? "Share verified — XP saved."
+                                      : "Marked — XP saved.",
+                                  ),
+                              },
+                            )
+                          }
                         >
-                          {done ? "Shared" : "Mark shared"}
+                          {done ? "Shared" : daily?.capabilities?.shareXVerify ? "Verify share" : "Mark shared"}
                         </Button>
                       </>
                     )}
@@ -369,7 +400,16 @@ export const ProfilePage = () => {
                           size="sm"
                           className="rounded-xl min-h-[44px]"
                           disabled={done || completeMut.isPending}
-                          onClick={() => completeMut.mutate({ address: address!, taskId: "community_pulse" })}
+                          onClick={() =>
+                            completeMut.mutate(
+                              { address: address!, taskId: "community_pulse" },
+                              {
+                                onError: e =>
+                                  toast.error(e instanceof Error ? e.message : "Could not save task"),
+                                onSuccess: () => toast.success("Community pulse saved."),
+                              },
+                            )
+                          }
                         >
                           {done ? "Done" : "Mark done"}
                         </Button>

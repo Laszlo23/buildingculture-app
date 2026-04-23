@@ -395,12 +395,43 @@ export type DailyTasksDto = {
     share_x: boolean;
     community_pulse: boolean;
   };
+  /** Community / growth XP (persisted server-side). */
+  growth: {
+    communityXp: number;
+    tierName: string;
+    xpIntoTier: number;
+    xpSpanInTier: number;
+  };
+  /** When true, “Share on X” must pass server verification (X API + recent tweet). */
+  capabilities: { shareXVerify: boolean };
 };
 
 /** Server BaseAI pipe (no keys in the browser; 503 if LANGBASE_API_KEY unset). */
 export type BuildingCulturePipeRequest =
-  | { userMessage: string }
-  | { messages: { role: "user" | "assistant" | "system"; content: string }[] };
+  | { userMessage: string; walletAddress?: string }
+  | { messages: { role: "user" | "assistant" | "system"; content: string }[]; walletAddress?: string };
+
+/** GET /api/membership/sale — Citizen pass parameters (server RPC read). */
+export type MembershipSaleDto =
+  | {
+      configured: false;
+      citizenPriceWei: null;
+      maxCitizenSupply: null;
+      citizensMinted: null;
+      treasury: null;
+      remaining: null;
+      balance: null;
+    }
+  | {
+      configured: true;
+      citizenPriceWei: string;
+      maxCitizenSupply: string;
+      citizensMinted: string;
+      treasury: string;
+      remaining: string;
+      /** `balanceOf` for `?address=` when provided */
+      balance: string | null;
+    };
 
 export type BuildingCulturePipeResponseDto = {
   id: string;
@@ -480,6 +511,14 @@ export const chainApi = {
         botTokenConfigured: boolean;
       };
     }>("/api/config"),
+
+  getMembershipSale: (address?: string) => {
+    const q =
+      address && /^0x[a-fA-F0-9]{40}$/i.test(address)
+        ? `?address=${encodeURIComponent(address)}`
+        : "";
+    return apiGet<MembershipSaleDto>(`/api/membership/sale${q}`);
+  },
 
   getBinanceKlines: (params: { symbol: string; interval: string; limit?: number }) => {
     const q = new URLSearchParams();

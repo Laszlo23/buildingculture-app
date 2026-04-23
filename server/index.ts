@@ -59,6 +59,7 @@ import {
 } from "./services/wealthPublic.ts";
 import { getWealthHistory } from "./services/wealthHistoryStore.ts";
 import { completeTask, getDailySnapshot } from "./services/dailyTasksStore.ts";
+import { verifyShareXForAddress } from "./services/shareXVerify.ts";
 import { fetchVaultSavingsForAddress } from "./services/portfolio.ts";
 import {
   tryGrantLearnRouteReward,
@@ -66,6 +67,11 @@ import {
   tryGrantVaultMemberReward,
   tryGrantVaultPatronNftReward,
 } from "./services/daoVotingRewards.js";
+import {
+  membershipNftConfigured,
+  readCitizenPassBalance,
+  readCitizenSaleParams,
+} from "./services/membershipNft.ts";
 import { buildProtocolPulse } from "./services/protocolPulse.ts";
 import { getStacksConfig } from "./lib/stacksEnv.js";
 import { buildStackingStatusDto } from "./services/stacksStackingStatus.ts";
@@ -227,6 +233,7 @@ app.get("/api/config", (c) => {
         strategyRegistry: env.STRATEGY_REGISTRY,
         assetToken: publishableEthAddress(env.ASSET_TOKEN) ?? null,
         learningNft: publishableEthAddress(env.LEARNING_NFT_CONTRACT) ?? null,
+        membershipNft: publishableEthAddress(env.MEMBERSHIP_NFT_CONTRACT) ?? null,
         villaPocBondingCurve: firstPublishableEthAddress(
           env.VILLA_POC_BONDING_CURVE,
           process.env.VITE_VILLA_BONDING_CURVE_ADDRESS,
@@ -244,6 +251,42 @@ app.get("/api/config", (c) => {
         /** REST host derived from BINANCE_API_BASE */
         restHost: binanceHost,
       },
+    });
+  } catch (e) {
+    return c.json({ error: serializeError(e) }, 500);
+  }
+});
+
+/** Citizen pass sale params + optional `balanceOf` for `?address=0x…`. */
+app.get("/api/membership/sale", async (c) => {
+  try {
+    if (!membershipNftConfigured()) {
+      return c.json({
+        configured: false as const,
+        citizenPriceWei: null,
+        maxCitizenSupply: null,
+        citizensMinted: null,
+        treasury: null,
+        remaining: null,
+        balance: null,
+      });
+    }
+    const params = await readCitizenSaleParams();
+    const rawAddr = c.req.query("address")?.trim();
+    let balance: string | null = null;
+    if (rawAddr && isAddress(rawAddr)) {
+      const b = await readCitizenPassBalance(rawAddr.toLowerCase() as `0x${string}`);
+      balance = b.toString();
+    }
+    const remaining = params.maxCitizenSupply - params.citizensMinted;
+    return c.json({
+      configured: true as const,
+      citizenPriceWei: params.citizenPriceWei.toString(),
+      maxCitizenSupply: params.maxCitizenSupply.toString(),
+      citizensMinted: params.citizensMinted.toString(),
+      treasury: params.treasury,
+      remaining: remaining.toString(),
+      balance,
     });
   } catch (e) {
     return c.json({ error: serializeError(e) }, 500);
@@ -521,7 +564,8 @@ const dailyTaskDefinitions = [
   {
     id: "share_x" as const,
     title: "Share on X",
-    description: "Spread the word with a pre-filled post, then mark done.",
+    description:
+      "Open X, post with the suggested text, then verify. When the server has X API keys, we check your recent tweets for the club link or phrase.",
   },
   {
     id: "community_pulse" as const,
@@ -717,6 +761,13 @@ app.post("/api/tasks/daily/complete", async (c) => {
   try {
     const body = completeDailyTaskBody.parse(await c.req.json());
     const addr = body.address as `0x${string}`;
+    if (body.taskId === "share_x" && isXApiConfigured()) {
+      const peek = getDailySnapshot(addr);
+      if (!peek.tasks.share_x) {
+        const v = await verifyShareXForAddress(addr);
+        if (!v.ok) return c.json({ error: { message: v.message } }, 400);
+      }
+    }
     const snap = completeTask(addr, body.taskId);
     return c.json({
       definitions: dailyTaskDefinitions,
@@ -732,6 +783,6 @@ const port = getEnv().PORT;
 const listenHost = process.env.API_LISTEN_HOST?.trim() || "127.0.0.1";
 console.log(`API listening on http://${listenHost}:${port}`);
 console.log(
-  "[api] Routes include GET/POST /api/paperclip/http-agent, GET/POST /pipeflare/callback, GET /api/agents, GET /users/premium, GET /api/tasks/daily, /api/profile, /api/wealth/:address, /api/leaderboard, /api/community/messages — if any 404 while older routes work, restart this process (stale tsx node).",
+  "[api] Routes include GET/POST /api/paperclip/http-agent, GET/POST /pipeflare/callback, GET /api/agents, GET /users/premium, GET /api/membership/sale, GET /api/tasks/daily, /api/profile, /api/wealth/:address, /api/leaderboard, /api/community/messages — if any 404 while older routes work, restart this process (stale tsx node).",
 );
 serve({ fetch: app.fetch, port, hostname: listenHost });

@@ -9,6 +9,8 @@ export type ApiDeployedContracts = {
   strategyRegistry: string | null;
   assetToken: string | null;
   learningNft: string | null;
+  /** ClubCitizenPass — paid Citizen membership */
+  membershipNft: string | null;
   villaPocBondingCurve: string | null;
   villaPocBondingUsdc: string | null;
 };
@@ -61,6 +63,12 @@ export const DEPLOYED_CONTRACT_DEFINITIONS: readonly DeployedContractDefinition[
     label: "Learning achievements (NFT)",
     solidity: "LearningAchievement.sol",
     description: "Soulbound-style credentials for Academy routes.",
+  },
+  {
+    key: "membershipNft",
+    label: "Citizen membership (NFT)",
+    solidity: "ClubCitizenPass.sol",
+    description: "Paid Citizen pass; Club AI may require a balance when configured on the API.",
   },
   {
     key: "villaPocBondingCurve",

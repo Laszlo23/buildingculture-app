@@ -124,9 +124,13 @@ npm run deploy:dao -- --network baseSepolia
 
 Set **`DAO_CONTRACT=`** from the script output, align **`PROPOSAL_IDS`** with real proposal ids on that contract, and restart the API. For **multichain** (several EVMs, separate envs per host, RPC rules), see **`deploy/MULTICHAIN.md`**.
 
-**Persistence** — Community chat and learning quiz completions are stored in **`server/.data/app.db`** (SQLite). Back up that file (and the rest of `server/.data/`) with your app; legacy JSON files are auto-imported into the DB once if the tables are empty.
+**Persistence** — Community chat, learning quiz completions, **daily growth tasks** (per wallet, UTC day), **check-in streaks**, and **community XP** are stored in **`server/.data/app.db`** (SQLite). Mount or back up that directory on every deploy host so progress survives restarts. Legacy `daily-tasks.json` is imported into SQLite once when the new tables are empty.
+
+**X (optional)** — With **`X_API_BEARER_TOKEN`** (or **`X_API_KEY`** + **`X_API_SECRET`**), the server can verify the **“Share on X”** task by reading the member’s recent tweets for your **`CORS_ORIGIN`** host/path and club phrases (optional **`SHARE_X_PHRASE_HINTS`**). Your X developer app must allow reading that user’s tweets at your product tier; if X is not configured, the task still completes on trust with lower XP (see server `growthXpStore`).
 
 **Farcaster (optional)** — Set **`NEYNAR_API_KEY`** on the server (same `.env` as the API) to resolve @handles for wallets that are Farcaster custody or verified addresses. The key never goes in the Vite bundle; the UI calls `GET /api/social/farcaster`.
+
+**Citizen membership NFT (optional)** — Deploy **`ClubCitizenPass`** (`npm run deploy:club-citizen-pass` on Base Sepolia, or **`deploy:club-citizen-pass:mainnet`** on Base). Set **`MEMBERSHIP_NFT_CONTRACT`** to the deployed address. The API exposes **`GET /api/membership/sale`** (optional `?address=` for `balanceOf`). When this env is set, **`POST /api/ai/pipe/building-culture-club`** requires a JSON **`walletAddress`** and a non-zero Citizen **`balanceOf`** on that address (Club AI gate). Omit **`MEMBERSHIP_NFT_CONTRACT`** (or use **`0x0`**) to keep Club AI open without an on-chain check.
 
 **Optional: Club AI (BaseAI + Langbase)** — The Community page can call `POST /api/ai/pipe/building-culture-club` via the same Hono process. It is **not** required to run the app. Merge the variables you need from `.env.baseai.example` into the server’s `.env` (same file as the rest of the API). Set **`LANGBASE_API_KEY`** (server-only; do not add `VITE_*` for AI). Provider keys belong in [Langbase keysets](https://langbase.com/docs/features/keysets) for hosted runs. If `LANGBASE_API_KEY` is missing, the route returns **503** and the rest of the site works. Use `npm run baseai` in development to iterate on the pipe in `baseai/pipes/`.
 

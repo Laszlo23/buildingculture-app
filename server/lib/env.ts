@@ -54,6 +54,19 @@ const envSchema = z
       .optional()
       .default("0x0000000000000000000000000000000000000000"),
   ),
+  /** ClubCitizenPass — paid Citizen membership; 0x0 disables on-chain reads and Club AI wallet gate */
+  MEMBERSHIP_NFT_CONTRACT: z.preprocess(
+    (v) => {
+      if (v === undefined || v === null) return undefined;
+      const s = String(v).trim();
+      return s === "" ? undefined : s;
+    },
+    z
+      .string()
+      .regex(/^0x[a-fA-F0-9]{40}$/)
+      .optional()
+      .default("0x0000000000000000000000000000000000000000"),
+  ),
   /** Minimum vault savings (asset decimals) to mint Vault Patron (achievement type 4) */
   VAULT_PATRON_MIN_DEPOSIT: z.coerce.number().optional().default(100),
   /**

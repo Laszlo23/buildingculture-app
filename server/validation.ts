@@ -114,6 +114,8 @@ export const buildingCulturePipeBody = z
       .min(1)
       .max(50)
       .optional(),
+    /** Required for Club AI when `MEMBERSHIP_NFT_CONTRACT` is set (server checks `balanceOf`). */
+    walletAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/i).optional(),
   })
   .refine(
     (d) =>

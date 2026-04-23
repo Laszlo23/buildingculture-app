@@ -10,8 +10,7 @@ import { TransactionConfirmDialog } from "@/components/TransactionConfirmDialog"
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { CryptoBeginnerBridge } from "@/components/dashboard/CryptoBeginnerBridge";
-import { VaultBeginnerOnboarding } from "@/components/dashboard/VaultBeginnerOnboarding";
+import { DashboardBeginnerCard } from "@/components/dashboard/DashboardBeginnerCard";
 import { StrategyPerformanceTable } from "@/components/dashboard/StrategyPerformanceTable";
 import { ContractAddressesBlock } from "@/components/dashboard/ContractAddressesBlock";
 import { VerifyOnChainStrip } from "@/components/dashboard/VerifyOnChainStrip";
@@ -35,6 +34,7 @@ import {
 } from "@/hooks/useChainData";
 import { useMemberVaultWallet } from "@/hooks/useMemberVaultWallet";
 import { useRecordReferral } from "@/hooks/useReferral";
+import { useDailyTasksQuery } from "@/hooks/useCommunity";
 import { riskScoreToOutOf10 } from "@/lib/riskDisplay";
 import { buildContractAddressBlockEntries, buildDeployedContractStripEntries } from "@/lib/deployedContracts";
 import { chainApi } from "@/lib/api";
@@ -58,6 +58,7 @@ export const Dashboard = () => {
   const [claimOpen, setClaimOpen] = useState(false);
   const qc = useQueryClient();
   const { status, address } = useConnection();
+  const { data: dailyTasks } = useDailyTasksQuery(status === "connected" ? address : undefined);
   const recordReferral = useRecordReferral();
   const didAttemptReferral = useRef(false);
   const didWealthSnapshotForDao = useRef(false);
@@ -250,9 +251,7 @@ export const Dashboard = () => {
         </Alert>
       ) : null}
 
-      <CryptoBeginnerBridge walletConnected={walletConnected} savings={savings} />
-
-      <VaultBeginnerOnboarding
+      <DashboardBeginnerCard
         walletConnected={walletConnected}
         savings={savings}
         portfolioLoading={portfolioLoading}
@@ -438,7 +437,11 @@ export const Dashboard = () => {
 
       <h2 className="sr-only">Governance and progress</h2>
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 border-t border-border/25 pt-4">
-        <LevelProgress current={userStats.level} xp={userStats.xp} xpToNext={userStats.xpToNext} />
+        <LevelProgress
+          current={dailyTasks?.growth?.tierName ?? userStats.level}
+          xp={dailyTasks?.growth?.xpIntoTier ?? userStats.xp}
+          xpToNext={dailyTasks?.growth?.xpSpanInTier ?? userStats.xpToNext}
+        />
 
         <div className="glass-card p-5 lg:col-span-2">
           <div className="flex items-center justify-between mb-3 gap-2">

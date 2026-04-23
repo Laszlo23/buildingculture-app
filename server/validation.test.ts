@@ -1,6 +1,6 @@
 /** @vitest-environment node */
 import { describe, expect, it } from "vitest";
-import { allocateBody, depositBody, voteBody, withdrawBody } from "./validation.ts";
+import { allocateBody, buildingCulturePipeBody, depositBody, voteBody, withdrawBody } from "./validation.ts";
 
 describe("validation", () => {
   it("parses deposit body", () => {
@@ -20,5 +20,15 @@ describe("validation", () => {
 
   it("parses withdraw", () => {
     expect(withdrawBody.parse({ amount: "10" })).toEqual({ amount: "10", decimals: undefined });
+  });
+
+  it("parses building-culture pipe body with optional walletAddress", () => {
+    expect(
+      buildingCulturePipeBody.parse({
+        userMessage: "hello",
+        walletAddress: "0xabcdef0123456789abcdef0123456789abcdef01",
+      }),
+    ).toMatchObject({ userMessage: "hello", walletAddress: "0xabcdef0123456789abcdef0123456789abcdef01" });
+    expect(buildingCulturePipeBody.parse({ userMessage: "hi" })).toEqual({ userMessage: "hi" });
   });
 });

@@ -60,9 +60,32 @@ export function initAppDatabase() {
       details_json TEXT
     );
     CREATE INDEX IF NOT EXISTS idx_stacks_keeper_created ON stacks_keeper_runs(created_at);
+
+    CREATE TABLE IF NOT EXISTS daily_streaks (
+      address TEXT PRIMARY KEY,
+      streak INTEGER NOT NULL DEFAULT 0,
+      last_check_in_date TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS daily_task_days (
+      address TEXT NOT NULL,
+      date TEXT NOT NULL,
+      check_in INTEGER NOT NULL DEFAULT 0,
+      share_x INTEGER NOT NULL DEFAULT 0,
+      community_pulse INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (address, date)
+    );
+    CREATE INDEX IF NOT EXISTS idx_daily_task_days_date ON daily_task_days(date);
+
+    CREATE TABLE IF NOT EXISTS member_community_xp (
+      address TEXT PRIMARY KEY,
+      community_xp INTEGER NOT NULL DEFAULT 0,
+      updated_at TEXT NOT NULL DEFAULT ''
+    );
   `);
   migrateChatMessageColumnsIfNeeded();
   migrateFromJsonIfNeeded();
+  migrateDailyTasksFromLegacyJsonIfNeeded();
 }
 
 /** Add agent role columns for Community Builder in-thread messages (idempotent). */
@@ -125,4 +148,54 @@ function migrateFromJsonIfNeeded() {
       // ignore
     }
   }
+}
+
+type LegacyDailyBook = Record<
+  string,
+  {
+    streak?: number;
+    lastCheckInDate?: string | null;
+    days?: Record<string, { check_in?: boolean; share_x?: boolean; community_pulse?: boolean }>;
+  }
+>;
+
+/** One-time import from `daily-tasks.json` when SQLite tables are still empty. */
+function migrateDailyTasksFromLegacyJsonIfNeeded() {
+  const d = getDb();
+  const rowCount = (d.prepare("SELECT COUNT(*) AS c FROM daily_task_days").get() as { c: number }).c;
+  if (rowCount > 0) return;
+  const legacyPath = join(dataDir, "daily-tasks.json");
+  if (!existsSync(legacyPath)) return;
+  let book: LegacyDailyBook;
+  try {
+    book = JSON.parse(readFileSync(legacyPath, "utf8")) as LegacyDailyBook;
+  } catch {
+    return;
+  }
+  if (!book || typeof book !== "object") return;
+
+  const insStreak = d.prepare(
+    "INSERT OR REPLACE INTO daily_streaks (address, streak, last_check_in_date) VALUES (?, ?, ?)",
+  );
+  const insDay = d.prepare(
+    "INSERT OR REPLACE INTO daily_task_days (address, date, check_in, share_x, community_pulse) VALUES (?, ?, ?, ?, ?)",
+  );
+  const run = d.transaction(() => {
+    for (const [addr, rec] of Object.entries(book)) {
+      if (!/^0x[a-fA-F0-9]{40}$/i.test(addr)) continue;
+      const k = addr.toLowerCase();
+      insStreak.run(k, rec.streak ?? 0, rec.lastCheckInDate ?? null);
+      for (const [date, day] of Object.entries(rec.days ?? {})) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+        insDay.run(
+          k,
+          date,
+          day.check_in ? 1 : 0,
+          day.share_x ? 1 : 0,
+          day.community_pulse ? 1 : 0,
+        );
+      }
+    }
+  });
+  run();
 }
