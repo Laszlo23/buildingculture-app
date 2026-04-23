@@ -1,10 +1,19 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import {
-  LayoutDashboard, Vault, TrendingUp, PieChart, GraduationCap,
-  Vote, Users, Gem, Bell, Search, Landmark, Shield, UserCircle, Menu, Trophy, UserPlus, Bot, Braces,
+  LayoutDashboard,
+  Vault,
+  TrendingUp,
+  PieChart,
+  GraduationCap,
+  Vote,
+  Users,
+  Gem,
+  Landmark,
+  UserCircle,
+  Menu,
 } from "lucide-react";
-import { navItems } from "@/data/club";
+import { footerNavLinks, navItems, navSidebarGroups } from "@/data/club";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
@@ -23,26 +32,30 @@ const iconMap = {
   Users,
   Gem,
   Landmark,
-  Shield,
   UserCircle,
-  Trophy,
-  UserPlus,
-  Bot,
-  Braces,
 };
+
+function navTitleForPath(pathname: string): string | null {
+  const fromNav = navItems.find(n => n.path === pathname)?.name;
+  if (fromNav) return fromNav;
+  const fromFooter = footerNavLinks.find(n => n.path === pathname)?.name;
+  if (fromFooter) return fromFooter;
+  if (pathname.startsWith("/investor")) return "Investor profile";
+  if (pathname.startsWith("/invite/")) return "Referral";
+  if (pathname.startsWith("/academy/")) return "Academy";
+  if (
+    pathname.startsWith("/strategies/") &&
+    pathname !== "/strategies" &&
+    pathname !== "/strategies/backtest-roadmap"
+  ) {
+    return "Strategy";
+  }
+  return null;
+}
 
 export const AppShell = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
-  const current = navItems.find(n => n.path === location.pathname);
-  const pageTitle =
-    current?.name ??
-    (location.pathname.startsWith("/investor") ? "Investor profile" : null) ??
-    (location.pathname === "/leaderboard" ? "Leaderboard" : null) ??
-    (location.pathname === "/invites" ? "Referral invites" : null) ??
-    (location.pathname.startsWith("/invite/") ? "Referral" : null) ??
-    (location.pathname === "/team" ? "Team" : null) ??
-    (location.pathname === "/agents" ? "Agents" : null) ??
-    (location.pathname === "/strategies/backtest-roadmap" ? "Backtest roadmap" : null);
+  const pageTitle = navTitleForPath(location.pathname);
   const { data: chainCfg } = useChainConfig();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
@@ -73,37 +86,49 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
           </p>
         </div>
 
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          {navItems.map(item => {
-            const Icon = iconMap[item.icon as keyof typeof iconMap];
-            return (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                end={item.path === "/"}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group relative w-full ${
-                    isActive
-                      ? "bg-sidebar-accent text-primary shadow-card"
-                      : "text-sidebar-foreground hover:text-foreground hover:bg-sidebar-accent/50"
-                  }`
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    {isActive && <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full shadow-glow" />}
-                    <Icon className="w-4 h-4" />
-                    <span className="flex-1 text-left">{item.name}</span>
-                    {item.path === "/vault" && (
-                      <Badge variant="outline" className="text-[9px] px-1.5 py-0 border-primary/40 text-primary shrink-0">
-                        Core
-                      </Badge>
+        <nav className="flex-1 px-3 py-3 space-y-5 overflow-y-auto" aria-label="Primary">
+          {navSidebarGroups.map(group => (
+            <div key={group.label} className="space-y-1">
+              <p className="px-3 pt-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/90">
+                {group.label}
+              </p>
+              {group.items.map(item => {
+                const Icon = iconMap[item.icon as keyof typeof iconMap];
+                return (
+                  <NavLink
+                    key={item.path}
+                    to={item.path}
+                    end={item.path === "/"}
+                    className={({ isActive }) =>
+                      `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group relative w-full ${
+                        isActive
+                          ? "bg-sidebar-accent text-primary shadow-card"
+                          : "text-sidebar-foreground hover:text-foreground hover:bg-sidebar-accent/50"
+                      }`
+                    }
+                  >
+                    {({ isActive }) => (
+                      <>
+                        {isActive && (
+                          <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full shadow-glow" />
+                        )}
+                        <Icon className="w-4 h-4 shrink-0" />
+                        <span className="flex-1 text-left">{item.name}</span>
+                        {item.path === "/vault" && (
+                          <Badge
+                            variant="outline"
+                            className="text-[9px] px-1.5 py-0 border-primary/40 text-primary shrink-0"
+                          >
+                            Core
+                          </Badge>
+                        )}
+                      </>
                     )}
-                  </>
-                )}
-              </NavLink>
-            );
-          })}
+                  </NavLink>
+                );
+              })}
+            </div>
+          ))}
         </nav>
 
         <div className="p-3 border-t border-border/60">
@@ -152,18 +177,6 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
             </div>
 
             <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-              <div className="hidden md:flex items-center gap-2 glass rounded-xl px-3 py-1.5 w-64">
-                <Search className="w-4 h-4 text-muted-foreground" />
-                <input
-                  placeholder="Search strategies, proposals…"
-                  className="bg-transparent text-sm outline-none flex-1 placeholder:text-muted-foreground"
-                />
-                <kbd className="text-[10px] text-muted-foreground border border-border rounded px-1.5 py-0.5 font-mono">⌘K</kbd>
-              </div>
-              <Button variant="ghost" size="icon" className="rounded-xl relative h-10 w-10">
-                <Bell className="w-4 h-4" />
-                <span className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              </Button>
               <WalletConnectButton />
             </div>
           </div>
@@ -197,43 +210,50 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
                 </p>
               </div>
 
-              <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto overscroll-contain px-3 py-4">
-                {navItems.map(item => {
-                  const Icon = iconMap[item.icon as keyof typeof iconMap];
-                  return (
-                    <NavLink
-                      key={item.path}
-                      to={item.path}
-                      end={item.path === "/"}
-                      onClick={() => setMobileNavOpen(false)}
-                      className={({ isActive }) =>
-                        `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 relative ${
-                          isActive
-                            ? "bg-sidebar-accent text-primary shadow-card"
-                            : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-foreground"
-                        }`
-                      }
-                    >
-                      {({ isActive }) => (
-                        <>
-                          {isActive && (
-                            <span className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-primary shadow-glow" />
+              <nav className="flex flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-3 py-4" aria-label="Primary">
+                {navSidebarGroups.map(group => (
+                  <div key={group.label} className="space-y-0.5">
+                    <p className="px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/90">
+                      {group.label}
+                    </p>
+                    {group.items.map(item => {
+                      const Icon = iconMap[item.icon as keyof typeof iconMap];
+                      return (
+                        <NavLink
+                          key={item.path}
+                          to={item.path}
+                          end={item.path === "/"}
+                          onClick={() => setMobileNavOpen(false)}
+                          className={({ isActive }) =>
+                            `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 relative ${
+                              isActive
+                                ? "bg-sidebar-accent text-primary shadow-card"
+                                : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-foreground"
+                            }`
+                          }
+                        >
+                          {({ isActive }) => (
+                            <>
+                              {isActive && (
+                                <span className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-primary shadow-glow" />
+                              )}
+                              <Icon className="w-4 h-4 shrink-0" />
+                              <span className="flex-1 text-left">{item.name}</span>
+                              {item.path === "/vault" && (
+                                <Badge
+                                  variant="outline"
+                                  className="shrink-0 border-primary/40 px-1.5 py-0 text-[9px] text-primary"
+                                >
+                                  Core
+                                </Badge>
+                              )}
+                            </>
                           )}
-                          <Icon className="w-4 h-4 shrink-0" />
-                          <span className="flex-1 text-left">{item.name}</span>
-                          {item.path === "/vault" && (
-                            <Badge
-                              variant="outline"
-                              className="shrink-0 border-primary/40 px-1.5 py-0 text-[9px] text-primary"
-                            >
-                              Core
-                            </Badge>
-                          )}
-                        </>
-                      )}
-                    </NavLink>
-                  );
-                })}
+                        </NavLink>
+                      );
+                    })}
+                  </div>
+                ))}
               </nav>
 
               <div className="border-t border-border/60 p-3">
@@ -254,26 +274,36 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
           {children}
         </main>
 
-        <footer className="border-t border-border/60 px-6 lg:px-10 py-6 text-xs text-muted-foreground flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <span>© 2026 Onchain Savings Club DAO · All strategies fully on-chain</span>
-            <span className="hidden sm:inline text-border">|</span>
-            <Link
-              to="/team"
-              className="text-foreground/80 hover:text-primary transition-colors font-medium"
-            >
-              Team
-            </Link>
-            <a
-              href="https://buildingculture.capital/team"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-primary transition-colors underline-offset-4 hover:underline"
-            >
-              buildingculture.capital/team
-            </a>
+        <footer className="border-t border-border/60 px-4 sm:px-6 lg:px-10 py-5 lg:py-6 text-xs text-muted-foreground">
+          <nav
+            className="flex flex-wrap gap-x-4 gap-y-1.5 pb-3 mb-3 border-b border-border/50"
+            aria-label="More links"
+          >
+            {footerNavLinks.map(link => (
+              <Link
+                key={link.path}
+                to={link.path}
+                className="text-foreground/85 hover:text-primary transition-colors font-medium underline-offset-4 hover:underline"
+              >
+                {link.name}
+              </Link>
+            ))}
+          </nav>
+          <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-3">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-x-3 gap-y-1 min-w-0">
+              <span>© 2026 Onchain Savings Club DAO · Strategies on-chain where deployed</span>
+              <span className="hidden sm:inline text-border">|</span>
+              <a
+                href="https://buildingculture.capital/team"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-foreground/80 hover:text-primary transition-colors underline-offset-4 hover:underline shrink-0"
+              >
+                buildingculture.capital
+              </a>
+            </div>
+            <span className="font-mono text-[10px] text-muted-foreground/90 shrink-0">v2.4.1</span>
           </div>
-          <span className="font-mono shrink-0">v2.4.1 · contract 0x9e…f3a2</span>
         </footer>
       </div>
 

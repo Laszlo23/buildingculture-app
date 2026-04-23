@@ -1,20 +1,51 @@
-export const navItems = [
-  { name: "Dashboard", path: "/", icon: "LayoutDashboard" },
-  { name: "Vault", path: "/vault", icon: "Vault" },
-  { name: "Strategies", path: "/strategies", icon: "TrendingUp" },
-  { name: "Portfolio", path: "/portfolio", icon: "PieChart" },
-  { name: "Leaderboard", path: "/leaderboard", icon: "Trophy" },
-  { name: "Invites", path: "/invites", icon: "UserPlus" },
-  { name: "Transparency", path: "/transparency", icon: "Shield" },
-  { name: "Contracts", path: "/contracts", icon: "Braces" },
-  { name: "Reserves", path: "/reserves", icon: "Landmark" },
-  { name: "Academy", path: "/academy", icon: "GraduationCap" },
-  { name: "DAO", path: "/dao", icon: "Vote" },
-  { name: "Agents", path: "/agents", icon: "Bot" },
-  { name: "Community", path: "/community", icon: "Users" },
-  { name: "Membership", path: "/membership", icon: "Gem" },
-  { name: "Profile", path: "/profile", icon: "UserCircle" },
-] as const;
+/** Single nav entry (sidebar + mobile). */
+export type NavItem = { name: string; path: string; icon: string };
+
+/** Grouped primary navigation — sidebar / mobile sheet. */
+export const navSidebarGroups: { label: string; items: NavItem[] }[] = [
+  {
+    label: "Overview",
+    items: [{ name: "Dashboard", path: "/", icon: "LayoutDashboard" }],
+  },
+  {
+    label: "Treasury & strategies",
+    items: [
+      { name: "Vault", path: "/vault", icon: "Vault" },
+      { name: "Strategies", path: "/strategies", icon: "TrendingUp" },
+      { name: "Portfolio", path: "/portfolio", icon: "PieChart" },
+      { name: "Reserves", path: "/reserves", icon: "Landmark" },
+    ],
+  },
+  {
+    label: "Learn & govern",
+    items: [
+      { name: "Academy", path: "/academy", icon: "GraduationCap" },
+      { name: "DAO", path: "/dao", icon: "Vote" },
+    ],
+  },
+  {
+    label: "Community",
+    items: [
+      { name: "Community", path: "/community", icon: "Users" },
+      { name: "Membership", path: "/membership", icon: "Gem" },
+      { name: "Profile", path: "/profile", icon: "UserCircle" },
+    ],
+  },
+];
+
+/** Flat list for titles / lookups — same order as groups. */
+export const navItems: NavItem[] = navSidebarGroups.flatMap(g => g.items);
+
+/** Secondary links — footer (still reachable, not in main rail). */
+export const footerNavLinks: { name: string; path: string }[] = [
+  { name: "Leaderboard", path: "/leaderboard" },
+  { name: "Invites", path: "/invites" },
+  { name: "Transparency", path: "/transparency" },
+  { name: "Contracts", path: "/contracts" },
+  { name: "Agents", path: "/agents" },
+  { name: "Backtest roadmap", path: "/strategies/backtest-roadmap" },
+  { name: "Team", path: "/team" },
+];
 
 /** Gamification only; financial figures come from GET /api/portfolio. */
 export const userStats = {
