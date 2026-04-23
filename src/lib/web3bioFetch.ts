@@ -29,9 +29,10 @@ function web3BioHeaders(): HeadersInit {
 }
 
 function extractErrorMessage(data: unknown, fallback: string): string {
-  if (typeof data === "object" && data !== null && "error" in data) {
-    const e = (data as { error?: unknown }).error;
-    if (typeof e === "string") return e;
+  if (typeof data === "object" && data !== null) {
+    const o = data as { message?: unknown; error?: unknown };
+    if (typeof o.message === "string" && o.message.trim()) return o.message.trim();
+    if (typeof o.error === "string" && o.error.trim()) return o.error.trim();
   }
   return fallback;
 }
@@ -71,7 +72,12 @@ export async function fetchWeb3BioUniversalProfile(address: string): Promise<unk
 
   if (!res.ok) {
     const msg = extractErrorMessage(data, res.statusText);
-    throw new Error(msg || `Web3.bio HTTP ${res.status}`);
+    const base = msg || `Web3.bio HTTP ${res.status}`;
+    const hint403 =
+      res.status === 403 && /invalid api token/i.test(base)
+        ? " Unset or correct WEB3_BIO_API_KEY / VITE_WEB3BIO_API_KEY in .env (invalid keys are rejected; omit the key to use free-tier limits)."
+        : "";
+    throw new Error(base + hint403);
   }
 
   if (data !== null && typeof data === "object" && !Array.isArray(data) && "error" in data) {

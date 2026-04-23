@@ -7,6 +7,7 @@ import { learningRouteList, type LearningRouteId } from "@/data/learningRoutes";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { chainApi } from "@/lib/api";
+import { OSC_LEARNING_NFT_IMAGE_URL } from "@/lib/nftCredentialArt";
 
 const colorClass = {
   primary: "border-primary/30 text-primary",
@@ -211,14 +212,22 @@ export const AcademyPage = () => {
                     )}
                   />
                 )}
-                <div className="relative text-xs font-medium uppercase tracking-wider text-muted-foreground flex items-center justify-between gap-2 flex-wrap">
-                  <span>NFT · {route.nftName}</span>
+                <div className="relative flex items-start gap-3">
+                  <img
+                    src={OSC_LEARNING_NFT_IMAGE_URL}
+                    alt=""
+                    className="h-11 w-11 shrink-0 rounded-lg object-cover border border-border/60 shadow-sm"
+                    decoding="async"
+                  />
+                  <div className="min-w-0 flex-1 text-xs font-medium uppercase tracking-wider text-muted-foreground flex flex-wrap items-center justify-between gap-2">
+                    <span>NFT · {route.nftName}</span>
                   {done ? (
                     <span className="inline-flex items-center gap-1 rounded-full border border-primary/35 bg-primary/15 px-2 py-0.5 text-[10px] font-semibold text-primary">
                       <Sparkles className="w-3 h-3 shrink-0" />
                       Credential saved
                     </span>
                   ) : null}
+                  </div>
                 </div>
                 <div className="relative font-display font-semibold text-lg leading-tight">{route.title}</div>
                 <p className="relative text-sm text-muted-foreground flex-1">{route.subtitle}</p>

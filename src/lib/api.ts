@@ -1,3 +1,7 @@
+import type { ApiDeployedContracts } from "./deployedContracts";
+
+export type { ApiDeployedContracts };
+
 const base = () => (import.meta.env.VITE_API_URL?.replace(/\/$/, "") ?? "");
 
 export type ApiErrorBody = { error?: { message?: string; code?: string } };
@@ -162,6 +166,24 @@ export type ProtocolPulseDto = {
   /** Set by API when the bundle is the single server read; the UI may set `client` when the pulse route fails. */
   source?: "api" | "client";
 };
+
+/** `GET /api/stacks/stacking-status` — read-only DAO Stacks / PoX snapshot when `STACKS_ENABLED=1`. */
+export type StacksStackingStatusDto = {
+  enabled: true;
+  network: "mainnet" | "testnet";
+  hiroBase: string;
+  address: string;
+  mode: "delegate" | "solo";
+  btcRewardAddress: string;
+  balanceMicroStx: string;
+  lockedMicroStx: string;
+  minAmountUstx: string;
+  rewardCycleId: number;
+  delegation: { delegated: boolean; delegateTo?: string; amountMicroStx?: string };
+  stacker: { stacked: boolean; unlockHeight?: number };
+};
+
+export type StacksStackingStatusResponse = StacksStackingStatusDto | { enabled: false };
 
 export type ProposalDto = {
   id: string;
@@ -445,7 +467,7 @@ export const chainApi = {
       chainName: string;
       /** Canonical GET URL; requires `?address=0x…`. Same path on dev when Vite proxies `/users`. */
       usersPremium?: { url: string; requiredQueryParams: string[] };
-      contracts: Record<string, string | null>;
+      contracts: ApiDeployedContracts;
       assetDecimals: number;
       vaultPatronMinDeposit?: number;
       binance?: { apiKeyConfigured: boolean; restHost: string };
@@ -470,6 +492,8 @@ export const chainApi = {
   treasury: () => apiGet<TreasuryDto>("/api/treasury"),
   /** Protocol “secret weapon”: sub-second read bundle for dashboards and embeds. */
   getProtocolPulse: () => apiGet<ProtocolPulseDto>("/api/protocol/pulse"),
+  /** Stacks PoX read-only status when server has `STACKS_ENABLED=1`; otherwise `{ enabled: false }`. */
+  getStacksStackingStatus: () => apiGet<StacksStackingStatusResponse>("/api/stacks/stacking-status"),
   proposals: () => apiGet<{ proposals: ProposalDto[] }>("/api/governance/proposals"),
   deposit: (amount: string, decimals?: number) =>
     apiPost<TxResult, { amount: string; decimals?: number }>("/api/transactions/deposit", {
@@ -540,7 +564,7 @@ export const chainApi = {
     }>(`/api/social/farcaster?addresses=${encodeURIComponent(unique.join(","))}`);
   },
 
-  /** X user lookup by handle (consumes API credits). Server: X_API_BEARER_TOKEN */
+  /** X user lookup by handle (consumes API credits). Server: X_API_BEARER_TOKEN or X_API_KEY + X_API_SECRET */
   getSocialXUser: (username: string) =>
     apiGet<SocialXUserResponse>(`/api/social/x/user?username=${encodeURIComponent(username.replace(/^@/, ""))}`),
 

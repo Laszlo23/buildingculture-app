@@ -34,8 +34,8 @@ function parseList(addresses: string | undefined, single: string | undefined): {
  */
 export function registerSocialRoutes(app: Hono) {
   /**
-   * X (Twitter) user by handle — uses your dev.x.com credits (Bearer / app token).
-   * GET ?username=buildingcultu3 (no @). Server-only key: X_API_BEARER_TOKEN.
+   * X (Twitter) user by handle — app-only auth: `X_API_BEARER_TOKEN` or `X_API_KEY` + `X_API_SECRET` (OAuth client_credentials).
+   * GET ?username=buildingcultu3 (no @).
    */
   app.get("/api/social/x/user", async (c) => {
     const raw = c.req.query("username")?.trim().replace(/^@/, "") ?? "";

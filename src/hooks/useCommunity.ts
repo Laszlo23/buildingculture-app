@@ -76,7 +76,7 @@ export function usePutProfileMutation() {
   });
 }
 
-/** Web3.bio universal profile (`GET https://api.web3.bio/profile/:address`). Auth via vite.config `define` from WEB3_BIO_API_KEY / BEARER_TOKEN etc. */
+/** Web3.bio universal profile (`GET https://api.web3.bio/profile/:address`). Keys from vite `define`: WEB3_BIO_API_KEY, WEB3_BIO_BEARER_TOKEN (not BEARER_TOKEN). */
 export function useWeb3BioProfileQuery(address: string | undefined) {
   const enabled = Boolean(address && /^0x[a-fA-F0-9]{40}$/i.test(address));
   return useQuery({

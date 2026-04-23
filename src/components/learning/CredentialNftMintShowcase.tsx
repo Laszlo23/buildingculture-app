@@ -132,9 +132,10 @@ export function CredentialNftMintShowcase({
           {heroImageSrc ? (
             <img
               src={heroImageSrc}
-              alt=""
+              alt={`${credentialName} credential artwork`}
               className="absolute inset-0 h-full w-full object-cover object-center opacity-95"
               decoding="async"
+              loading="eager"
             />
           ) : (
             <div className="absolute inset-0 overflow-hidden" aria-hidden>

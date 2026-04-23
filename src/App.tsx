@@ -19,6 +19,7 @@ import { CommunityPage } from "./pages/CommunityPage";
 import { MembershipPage } from "./pages/MembershipPage";
 import { LearningRoutePage } from "./pages/LearningRoutePage";
 import { TransparencyPage } from "./pages/TransparencyPage";
+import { ContractsPage } from "./pages/ContractsPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { InvestorPage } from "./pages/InvestorPage";
 import { LeaderboardPage } from "./pages/LeaderboardPage";
@@ -48,6 +49,7 @@ const App = () => (
             <Route path="/reserves" element={wrap(<ReservesPage />)} />
             <Route path="/portfolio" element={wrap(<PortfolioPage />)} />
             <Route path="/transparency" element={wrap(<TransparencyPage />)} />
+            <Route path="/contracts" element={wrap(<ContractsPage />)} />
             <Route path="/academy" element={wrap(<AcademyPage />)} />
             <Route path="/academy/:routeId" element={wrap(<LearningRoutePage />)} />
             <Route path="/dao" element={wrap(<DAOPage />)} />

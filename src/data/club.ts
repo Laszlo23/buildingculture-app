@@ -6,6 +6,7 @@ export const navItems = [
   { name: "Leaderboard", path: "/leaderboard", icon: "Trophy" },
   { name: "Invites", path: "/invites", icon: "UserPlus" },
   { name: "Transparency", path: "/transparency", icon: "Shield" },
+  { name: "Contracts", path: "/contracts", icon: "Braces" },
   { name: "Reserves", path: "/reserves", icon: "Landmark" },
   { name: "Academy", path: "/academy", icon: "GraduationCap" },
   { name: "DAO", path: "/dao", icon: "Vote" },

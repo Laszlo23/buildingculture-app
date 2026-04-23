@@ -69,6 +69,10 @@ const envSchema = z
     },
     z.string().url(),
   ),
+  /** Villa POC bonding curve — optional; may also set `VITE_VILLA_BONDING_CURVE_ADDRESS` for the UI bundle. */
+  VILLA_POC_BONDING_CURVE: z.string().regex(/^0x[a-fA-F0-9]{40}$/).optional(),
+  /** USDC (or other asset) used by the Villa POC curve when deployed. */
+  VILLA_POC_BONDING_USDC: z.string().regex(/^0x[a-fA-F0-9]{40}$/).optional(),
 })
   .refine(
     (d) => Boolean(d.RPC_URL?.trim()) || Boolean(d.ALCHEMY_API_KEY?.trim()),

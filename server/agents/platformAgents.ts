@@ -186,7 +186,7 @@ export function buildPlatformAgentsPayload(): { agents: PlatformAgentDto[]; meta
       name: "X (Twitter) API",
       shortGoal: "Public user lookup via X API v2 (developer.x.com credits)",
       integrationStatus: xApi ? "ready" : "not_configured",
-      missingConfig: xApi ? [] : ["X_API_BEARER_TOKEN (app Bearer from developer.x.com)"],
+      missingConfig: xApi ? [] : ["X_API_BEARER_TOKEN or X_API_KEY + X_API_SECRET (developer.x.com)"],
       platformPath: "/profile",
       apiHooks: [
         {

@@ -26,6 +26,7 @@ import {
   useChainConfig,
 } from "@/hooks/useChainData";
 import { explorerAddressUrl, explorerTxUrl } from "@/lib/api";
+import { buildDeployedContractStripEntries } from "@/lib/deployedContracts";
 import { disclosureForRegistryIndex } from "@/data/strategyOnchain";
 import { cn } from "@/lib/utils";
 
@@ -197,10 +198,10 @@ export const StrategyDetailPage = () => {
         </p>
         <ul className="space-y-2 text-sm">
           {[
-            { label: "Vault", addr: chainConfig?.contracts?.vault },
-            { label: "Treasury", addr: chainConfig?.contracts?.treasury },
-            { label: "DAO", addr: chainConfig?.contracts?.dao },
-            { label: "Strategy registry", addr: chainConfig?.contracts?.strategyRegistry },
+            ...buildDeployedContractStripEntries(chainConfig?.contracts).map(r => ({
+              label: r.label,
+              addr: r.address,
+            })),
             ...(adapterFromMerged
               ? [{ label: "Strategy adapter (this id)", addr: adapterFromMerged }]
               : []),

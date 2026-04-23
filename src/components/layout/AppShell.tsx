@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Vault, TrendingUp, PieChart, GraduationCap,
-  Vote, Users, Gem, Bell, Search, Landmark, Shield, UserCircle, Menu, Trophy, UserPlus, Bot,
+  Vote, Users, Gem, Bell, Search, Landmark, Shield, UserCircle, Menu, Trophy, UserPlus, Bot, Braces,
 } from "lucide-react";
 import { navItems } from "@/data/club";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,7 @@ const iconMap = {
   Trophy,
   UserPlus,
   Bot,
+  Braces,
 };
 
 export const AppShell = ({ children }: { children: React.ReactNode }) => {

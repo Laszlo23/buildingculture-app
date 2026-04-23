@@ -3,6 +3,7 @@ import { ArrowRight, Clock, GraduationCap, Shield, Sparkles } from "lucide-react
 import { Button } from "@/components/ui/button";
 import { WalletConnectButton } from "@/components/wallet/WalletConnectButton";
 import { getBinanceReferralUrl } from "@/config/referrals";
+import { explorerAddressUrl } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -10,6 +11,9 @@ type Props = {
   /** Vault / savings balance from portfolio (same units as dashboard). */
   savings: number;
   portfolioLoading: boolean;
+  /** For BaseScan link when connected but balance still zero. */
+  chainId?: number;
+  vaultAddress?: string | null;
 };
 
 const steps = [
@@ -18,7 +22,13 @@ const steps = [
   "Deposit into the vault",
 ] as const;
 
-export function VaultBeginnerOnboarding({ walletConnected, savings, portfolioLoading }: Props) {
+export function VaultBeginnerOnboarding({
+  walletConnected,
+  savings,
+  portfolioLoading,
+  chainId = 8453,
+  vaultAddress,
+}: Props) {
   const show = !walletConnected || savings <= 0;
   if (!show) return null;
 
@@ -85,12 +95,35 @@ export function VaultBeginnerOnboarding({ walletConnected, savings, portfolioLoa
               </h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 New to crypto? Follow these steps to begin.
+                {!walletConnected ? (
+                  <>
+                    {" "}
+                    Until you connect, vault numbers may reflect the club API account on Base, not your personal
+                    wallet.
+                  </>
+                ) : null}
               </p>
             </div>
           </div>
 
           {walletConnected && portfolioLoading ? (
             <p className="text-xs text-muted-foreground">Checking your vault balance…</p>
+          ) : null}
+
+          {walletConnected && !portfolioLoading && savings <= 0 && vaultAddress ? (
+            <p className="text-xs text-muted-foreground leading-relaxed border-l-2 border-border/70 pl-3">
+              Still zero? The app calls the API with your connected address. Use the same wallet you deposited from,
+              stay on Base, then verify on{" "}
+              <a
+                href={explorerAddressUrl(chainId, vaultAddress)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary font-medium hover:underline"
+              >
+                BaseScan (SavingsVault)
+              </a>{" "}
+              (Read contract → <span className="font-mono text-[11px]">balanceOf</span>).
+            </p>
           ) : null}
 
           <ol className="space-y-2.5">

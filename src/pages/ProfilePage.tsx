@@ -511,8 +511,8 @@ export const ProfilePage = () => {
           <p className="text-xs text-muted-foreground mt-0.5 max-w-prose">
             When your <strong>X (Twitter) URL</strong> above includes a handle, we can fetch public profile fields via the
             X API v2 (uses your <span className="font-mono text-[10px]">developer.x.com</span> credits — each lookup
-            is billed). Server key: <code className="text-[10px]">X_API_BEARER_TOKEN</code> — never exposed to the
-            browser.
+            is billed). Server: <code className="text-[10px]">X_API_BEARER_TOKEN</code> or{" "}
+            <code className="text-[10px]">X_API_KEY</code> + <code className="text-[10px]">X_API_SECRET</code> — never exposed to the browser.
           </p>
         </div>
         {!xHandle && (
@@ -531,7 +531,8 @@ export const ProfilePage = () => {
         )}
         {xHandle && !xLoading && !xIsError && xUserRes && !xUserRes.configured && (
           <p className="text-sm text-muted-foreground">
-            X API is not configured. Add <code className="text-[10px]">X_API_BEARER_TOKEN</code> from{" "}
+            X API is not configured. Add <code className="text-[10px]">X_API_BEARER_TOKEN</code> or{" "}
+            <code className="text-[10px]">X_API_KEY</code> + <code className="text-[10px]">X_API_SECRET</code> from{" "}
             <a href="https://developer.x.com" target="_blank" rel="noopener noreferrer" className="text-primary underline">
               developer.x.com
             </a>{" "}

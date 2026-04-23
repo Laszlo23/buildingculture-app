@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useConnectedPortfolio } from "@/hooks/useChainData";
 import { explorerTxUrl } from "@/lib/api";
 import { Button } from "@/components/ui/button";
+import { StacksStackingStrip } from "@/components/dashboard/StacksStackingStrip";
 
 const ROWS: Array<{ metric: string; source: string; detail: string }> = [
   {
@@ -58,6 +59,12 @@ const ROWS: Array<{ metric: string; source: string; detail: string }> = [
     detail:
       "`VillaPocBondingCurve.buy(usdcBudget)` pulls USDC to the configured beneficiary and mints receipt tokens; not audited and unrelated to `ClubTreasury.totalAssets()`. If the env address is unset, no live curve is wired in this UI.",
   },
+  {
+    metric: "Solidity deployments (vault, treasury, DAO, registry, NFTs, villa POC)",
+    source: "GET /api/config → contracts",
+    detail:
+      "The `/contracts` page lists every configured address with links to BaseScan. Server env may use `VILLA_POC_BONDING_CURVE` / `VILLA_POC_BONDING_USDC` or the mirrored `VITE_VILLA_*` keys.",
+  },
 ];
 
 export const TransparencyPage = () => {
@@ -77,6 +84,12 @@ export const TransparencyPage = () => {
           Where each number comes from, and a live feed of StrategyRegistry events so automation and manual updates stay
           inspectable on BaseScan.
         </p>
+        <p className="text-sm">
+          <Link to="/contracts" className="text-primary font-medium hover:underline">
+            On-chain contract catalog
+          </Link>{" "}
+          <span className="text-muted-foreground">— every deployed club contract with BaseScan links.</span>
+        </p>
       </header>
 
       <section className="glass-card p-6 space-y-4">
@@ -91,6 +104,7 @@ export const TransparencyPage = () => {
             {keeper.providers.join(" · ")}
           </p>
         )}
+        <StacksStackingStrip />
       </section>
 
       <section className="glass-card overflow-hidden">

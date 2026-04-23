@@ -14,8 +14,10 @@ import {
   useWithdrawMutation,
 } from "@/hooks/useChainData";
 import { useMemberVaultWallet } from "@/hooks/useMemberVaultWallet";
+import { explorerAddressUrl } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { VerifyOnChainStrip } from "@/components/dashboard/VerifyOnChainStrip";
+import { buildDeployedContractStripEntries } from "@/lib/deployedContracts";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { WalletConnectButton } from "@/components/wallet/WalletConnectButton";
 
@@ -157,6 +159,7 @@ export const VaultPage = () => {
   };
 
   const chainId = chainConfig?.chainId ?? portfolio?.chainId ?? 8453;
+  const vaultAddr = chainConfig?.contracts?.vault ?? null;
 
   const confirmDescription =
     status === "connected"
@@ -193,16 +196,51 @@ export const VaultPage = () => {
         </Alert>
       )}
 
+      {status !== "connected" && (
+        <Alert className="rounded-xl border-border/60 bg-secondary/20">
+          <Wallet className="h-4 w-4 text-primary" />
+          <AlertTitle className="text-sm">Connect to see your vault balance</AlertTitle>
+          <AlertDescription className="text-xs text-muted-foreground leading-relaxed">
+            While disconnected, the app shows the club API signer&apos;s on-chain position, not your personal wallet.
+            Connect the same wallet you used to deposit into the SavingsVault so{" "}
+            <span className="font-mono text-[11px]">/api/portfolio?address=…</span> matches your funds.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {status === "connected" && !portfolioLoading && primaryBalance === 0 && vaultAddr && (
+        <Alert className="rounded-xl border-border/60 bg-secondary/20">
+          <Info className="h-4 w-4 text-primary" />
+          <AlertTitle className="text-sm">Vault reads zero for this wallet</AlertTitle>
+          <AlertDescription className="text-xs text-muted-foreground leading-relaxed">
+            If you already deposited USDC, confirm you are on Base, using the same address that signed the deposit, and
+            that production <span className="font-mono text-[11px]">VAULT_CONTRACT</span> matches the contract you
+            used. Open{" "}
+            <a
+              href={explorerAddressUrl(chainId, vaultAddr)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary font-medium hover:underline"
+            >
+              SavingsVault on BaseScan
+            </a>{" "}
+            and use Read → <span className="font-mono text-[11px]">balanceOf</span> with your address.
+          </AlertDescription>
+        </Alert>
+      )}
+
       <VerifyOnChainStrip
         chainId={chainId}
         compact
-        entries={[
-          { label: "Vault", address: chainConfig?.contracts?.vault },
-          { label: "Treasury", address: chainConfig?.contracts?.treasury },
-          { label: "Strategy registry", address: chainConfig?.contracts?.strategyRegistry },
-        ]}
+        entries={buildDeployedContractStripEntries(chainConfig?.contracts)}
       />
-      <div className="flex justify-end">
+      <div className="flex flex-wrap justify-end gap-x-4 gap-y-1">
+        <Link
+          to="/contracts"
+          className="text-xs font-medium text-primary hover:underline py-2 min-h-[44px] flex items-center"
+        >
+          All on-chain contracts
+        </Link>
         <Link to="/transparency" className="text-xs font-medium text-primary hover:underline py-2 min-h-[44px] flex items-center">
           How these numbers are sourced
         </Link>

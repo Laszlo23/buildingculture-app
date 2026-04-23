@@ -16,11 +16,9 @@ export default defineConfig(({ mode, command }) => {
     rootEnv.WEB3_BIO_API_KEY?.trim() ||
     rootEnv.WEB3BIO_API_KEY?.trim() ||
     "";
+  /** Only Web3.bio-specific vars — do not reuse `BEARER_TOKEN` (often X/Twitter OAuth) here; wrong `Authorization` can break Profile API. */
   const web3bioBearer =
-    rootEnv.VITE_WEB3BIO_BEARER_TOKEN?.trim() ||
-    rootEnv.WEB3_BIO_BEARER_TOKEN?.trim() ||
-    rootEnv.BEARER_TOKEN?.trim() ||
-    "";
+    rootEnv.VITE_WEB3BIO_BEARER_TOKEN?.trim() || rootEnv.WEB3_BIO_BEARER_TOKEN?.trim() || "";
 
   /** Must match Hono `PORT` in .env (default 3001). Hardcoding 3001 breaks the proxy if PORT differs. */
   const apiPort = rootEnv.PORT?.trim() || "3001";

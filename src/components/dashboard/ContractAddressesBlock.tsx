@@ -13,10 +13,12 @@ function shortAddr(a: string) {
 type Props = {
   chainId: number;
   entries: Entry[];
+  /** When true, the address list starts expanded (e.g. full contract registry on the dashboard). */
+  defaultOpen?: boolean;
 };
 
-export function ContractAddressesBlock({ chainId, entries }: Props) {
-  const [open, setOpen] = useState(false);
+export function ContractAddressesBlock({ chainId, entries, defaultOpen = false }: Props) {
+  const [open, setOpen] = useState(defaultOpen);
   const valid = entries.filter(e => e.address && e.address.startsWith("0x") && e.address.length === 42);
 
   if (valid.length === 0) return null;

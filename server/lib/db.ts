@@ -48,6 +48,18 @@ export function initAppDatabase() {
       PRIMARY KEY (address, reward_key)
     );
     CREATE INDEX IF NOT EXISTS idx_dao_voting_rewards_address ON dao_voting_rewards(address);
+
+    CREATE TABLE IF NOT EXISTS stacks_keeper_runs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      created_at TEXT NOT NULL,
+      action TEXT NOT NULL,
+      status TEXT NOT NULL,
+      dry_run INTEGER NOT NULL DEFAULT 0,
+      tx_id TEXT,
+      error TEXT,
+      details_json TEXT
+    );
+    CREATE INDEX IF NOT EXISTS idx_stacks_keeper_created ON stacks_keeper_runs(created_at);
   `);
   migrateChatMessageColumnsIfNeeded();
   migrateFromJsonIfNeeded();

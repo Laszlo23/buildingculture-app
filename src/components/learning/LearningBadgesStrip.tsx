@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { Award, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useConnection } from "wagmi";
 import { chainApi } from "@/lib/api";
+import { OSC_LEARNING_NFT_IMAGE_URL } from "@/lib/nftCredentialArt";
 import { cn } from "@/lib/utils";
 
 const qk = (addr: string | undefined) => ["nft", "badges", addr] as const;
@@ -44,7 +45,20 @@ export function LearningBadgesStrip({ className }: { className?: string }) {
               : "border border-dashed border-muted-foreground/40 bg-secondary/25 text-muted-foreground",
           )}
         >
-          <Award className="h-3.5 w-3.5 shrink-0" />
+          <span
+            className={cn(
+              "relative h-8 w-8 shrink-0 overflow-hidden rounded-md border bg-secondary/40",
+              b.minted ? "border-primary/35" : "border-muted-foreground/25 opacity-50",
+            )}
+          >
+            <img
+              src={OSC_LEARNING_NFT_IMAGE_URL}
+              alt=""
+              role="presentation"
+              className="h-full w-full object-cover"
+              decoding="async"
+            />
+          </span>
           <span>{b.name}</span>
           {b.minted ? (
             <span className="text-[10px] opacity-80">minted</span>

@@ -5,7 +5,7 @@ interface ImportMetaEnv {
   readonly VITE_ALCHEMY_API_KEY?: string;
   /** Web3.bio `X-API-KEY: Bearer …` (also set from WEB3_BIO_API_KEY / WEB3BIO_API_KEY via vite.config define) */
   readonly VITE_WEB3BIO_API_KEY?: string;
-  /** Web3.bio `Authorization: Bearer` (also set from WEB3_BIO_BEARER_TOKEN / BEARER_TOKEN via vite.config define) */
+  /** Web3.bio optional `Authorization: Bearer` — from WEB3_BIO_BEARER_TOKEN / VITE_WEB3BIO_BEARER_TOKEN only (not BEARER_TOKEN). */
   readonly VITE_WEB3BIO_BEARER_TOKEN?: string;
   readonly VITE_SITE_ORIGIN?: string;
   readonly VITE_API_URL?: string;

@@ -5,6 +5,7 @@ import { logger } from "hono/logger";
 import { isAddress, parseUnits } from "viem";
 import { ZodError } from "zod";
 import { getChain, getSignerAddress } from "./lib/chain.js";
+import { firstPublishableEthAddress, publishableEthAddress } from "./lib/contractAddress.js";
 import { getEnv } from "./lib/env.js";
 import { fetchProposals } from "./services/governance.ts";
 import { fetchPortfolio, fetchPortfolioForAddress } from "./services/portfolio.ts";
@@ -66,6 +67,8 @@ import {
   tryGrantVaultPatronNftReward,
 } from "./services/daoVotingRewards.js";
 import { buildProtocolPulse } from "./services/protocolPulse.ts";
+import { getStacksConfig } from "./lib/stacksEnv.js";
+import { buildStackingStatusDto } from "./services/stacksStackingStatus.ts";
 import { fetchBinanceKlines } from "./services/binanceKlines.ts";
 import { registerAgentRoutes } from "./routes/agents.js";
 import { registerPaperclipHttpAdapterRoutes } from "./routes/paperclipHttpAdapter.js";
@@ -198,7 +201,7 @@ app.get("/api/config", (c) => {
         communityAgentInChat: isCommunityAgentInChatEnabled(),
       },
       x: {
-        /** X API v2 (developer.x.com credits) — server-only bearer */
+        /** X API v2 — server-only: `X_API_BEARER_TOKEN` or consumer `X_API_KEY` + `X_API_SECRET` */
         apiConfigured: isXApiConfigured(),
       },
       contracts: {
@@ -206,8 +209,16 @@ app.get("/api/config", (c) => {
         treasury: env.TREASURY_CONTRACT,
         dao: env.DAO_CONTRACT,
         strategyRegistry: env.STRATEGY_REGISTRY,
-        assetToken: env.ASSET_TOKEN ?? null,
-        learningNft: env.LEARNING_NFT_CONTRACT ?? null,
+        assetToken: publishableEthAddress(env.ASSET_TOKEN) ?? null,
+        learningNft: publishableEthAddress(env.LEARNING_NFT_CONTRACT) ?? null,
+        villaPocBondingCurve: firstPublishableEthAddress(
+          env.VILLA_POC_BONDING_CURVE,
+          process.env.VITE_VILLA_BONDING_CURVE_ADDRESS,
+        ),
+        villaPocBondingUsdc: firstPublishableEthAddress(
+          env.VILLA_POC_BONDING_USDC,
+          process.env.VITE_VILLA_BONDING_USDC_ADDRESS,
+        ),
       },
       assetDecimals: env.ASSET_DECIMALS,
       vaultPatronMinDeposit: env.VAULT_PATRON_MIN_DEPOSIT,
@@ -246,6 +257,20 @@ app.get("/api/protocol/pulse", async (c) => {
   try {
     const pulse = await buildProtocolPulse();
     return c.json(pulse);
+  } catch (e) {
+    return c.json({ error: serializeError(e) }, 500);
+  }
+});
+
+/** Read-only Stacks PoX / stacking snapshot for the configured DAO address (no signing). */
+app.get("/api/stacks/stacking-status", async (c) => {
+  try {
+    const cfg = getStacksConfig();
+    if (!cfg) {
+      return c.json({ enabled: false as const });
+    }
+    const dto = await buildStackingStatusDto(cfg);
+    return c.json(dto);
   } catch (e) {
     return c.json({ error: serializeError(e) }, 500);
   }

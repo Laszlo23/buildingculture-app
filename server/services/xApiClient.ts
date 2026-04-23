@@ -1,4 +1,5 @@
 import { xApiBase, xApiBearerToken } from "../lib/xApiEnv.js";
+import { fetchXAppOnlyBearerToken } from "./xAppOnlyBearer.js";
 
 export type XUserPublic = {
   id: string;
@@ -37,9 +38,17 @@ export async function fetchXUserByUsername(username: string): Promise<
   | { ok: true; user: XUserPublic }
   | { ok: false; status: number; message: string }
 > {
-  const token = xApiBearerToken();
+  let token = xApiBearerToken();
   if (!token) {
-    return { ok: false, status: 503, message: "X API is not configured (set X_API_BEARER_TOKEN on the server)." };
+    token = await fetchXAppOnlyBearerToken();
+  }
+  if (!token) {
+    return {
+      ok: false,
+      status: 503,
+      message:
+        "X API is not configured. Set X_API_BEARER_TOKEN, or X_API_KEY + X_API_SECRET (consumer keys from developer.x.com) on the server.",
+    };
   }
 
   const u = username.trim().replace(/^@/, "");

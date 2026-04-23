@@ -1,7 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useConnection } from "wagmi";
-import { chainApi, explorerTxUrl, type PortfolioDto, type ProposalDto, type ProtocolPulseDto } from "@/lib/api";
+import {
+  chainApi,
+  explorerTxUrl,
+  type PortfolioDto,
+  type ProposalDto,
+  type ProtocolPulseDto,
+  type StacksStackingStatusResponse,
+} from "@/lib/api";
 
 export const qk = {
   wallet: ["chain", "wallet"] as const,
@@ -10,6 +17,7 @@ export const qk = {
   treasury: ["chain", "treasury"] as const,
   proposals: ["chain", "proposals"] as const,
   pulse: ["chain", "protocol", "pulse"] as const,
+  stacksStacking: ["chain", "stacks", "stacking-status"] as const,
 };
 
 export function useWalletInfo() {
@@ -79,6 +87,17 @@ export function useProtocolPulse() {
     staleTime: 6_000,
     retry: 2,
     retryDelay: (i) => Math.min(1500 * 2 ** i, 6_000),
+  });
+}
+
+/** Read-only Stacks PoX / delegation snapshot for the DAO address configured on the API. */
+export function useStacksStackingStatus() {
+  return useQuery<StacksStackingStatusResponse>({
+    queryKey: qk.stacksStacking,
+    queryFn: () => chainApi.getStacksStackingStatus(),
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+    retry: 1,
   });
 }
 

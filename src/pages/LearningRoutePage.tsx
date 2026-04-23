@@ -16,6 +16,7 @@ import {
   CredentialNftMintShowcase,
   type CredentialMintPhase,
 } from "@/components/learning/CredentialNftMintShowcase";
+import { OSC_LEARNING_NFT_IMAGE_URL } from "@/lib/nftCredentialArt";
 import { useConnection } from "wagmi";
 
 const qkElig = (addr: string | undefined) => ["nft", "eligibility", addr] as const;
@@ -267,6 +268,7 @@ export function LearningRoutePage() {
           ownerAddress={address}
           completedAtIso={completedAtIso}
           description={credentialDescription}
+          heroImageSrc={OSC_LEARNING_NFT_IMAGE_URL}
         />
       )}
 

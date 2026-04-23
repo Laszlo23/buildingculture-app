@@ -20,6 +20,7 @@ import { InviteEarnCard } from "@/components/dashboard/InviteEarnCard";
 import { ProtocolCoreFrame } from "@/components/dashboard/ProtocolCoreFrame";
 import { ClubMemberPulse } from "@/components/dashboard/ClubMemberPulse";
 import { ProtocolPulseBeacon } from "@/components/dashboard/ProtocolPulseBeacon";
+import { StacksStackingStrip } from "@/components/dashboard/StacksStackingStrip";
 import { strategies as staticStrategies, userStats, growthData as fallbackGrowth } from "@/data/club";
 import {
   mergeStrategiesForUi,
@@ -34,6 +35,7 @@ import {
 import { useMemberVaultWallet } from "@/hooks/useMemberVaultWallet";
 import { useRecordReferral } from "@/hooks/useReferral";
 import { riskScoreToOutOf10 } from "@/lib/riskDisplay";
+import { buildContractAddressBlockEntries, buildDeployedContractStripEntries } from "@/lib/deployedContracts";
 import { chainApi } from "@/lib/api";
 import { toast } from "sonner";
 import { getLeadReserveImagePath, publicAssetSrc } from "@/data/realAssets";
@@ -182,12 +184,8 @@ export const Dashboard = () => {
 
   const chainId = chainConfig?.chainId ?? portfolio?.chainId ?? 8453;
   const leadReserveImagePath = useMemo(() => getLeadReserveImagePath(), []);
-  const contractEntries = [
-    { label: "Vault", address: chainConfig?.contracts?.vault },
-    { label: "Treasury", address: chainConfig?.contracts?.treasury },
-    { label: "DAO", address: chainConfig?.contracts?.dao },
-    { label: "Strategy registry", address: chainConfig?.contracts?.strategyRegistry },
-  ];
+  const contractEntries = buildContractAddressBlockEntries(chainConfig?.contracts);
+  const verifyStripEntries = buildDeployedContractStripEntries(chainConfig?.contracts);
 
   return (
     <div className="relative isolate">
@@ -278,6 +276,8 @@ export const Dashboard = () => {
         />
         <ProtocolPulseBeacon variant="supporting" />
       </ProtocolCoreFrame>
+
+      <StacksStackingStrip compact />
 
       {portfolioError && (
         <div className="rounded-2xl border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm text-destructive space-y-1">
@@ -487,22 +487,16 @@ export const Dashboard = () => {
           strategyRegistry={chainConfig?.contracts?.strategyRegistry}
           dao={chainConfig?.contracts?.dao}
         />
-        <VerifyOnChainStrip
-          chainId={chainId}
-          compact
-          entries={[
-            { label: "Vault", address: chainConfig?.contracts?.vault },
-            { label: "Treasury", address: chainConfig?.contracts?.treasury },
-            { label: "Strategy registry", address: chainConfig?.contracts?.strategyRegistry },
-            { label: "DAO", address: chainConfig?.contracts?.dao },
-          ]}
-        />
-        <div className="flex justify-end px-1">
+        <VerifyOnChainStrip chainId={chainId} compact entries={verifyStripEntries} />
+        <div className="flex flex-wrap justify-end gap-x-3 gap-y-1 px-1">
+          <Button variant="link" size="sm" className="text-xs h-auto py-1" asChild>
+            <Link to="/contracts">All contracts</Link>
+          </Button>
           <Button variant="link" size="sm" className="text-xs h-auto py-1" asChild>
             <Link to="/transparency">Full transparency</Link>
           </Button>
         </div>
-        <ContractAddressesBlock chainId={chainId} entries={contractEntries} />
+        <ContractAddressesBlock chainId={chainId} entries={contractEntries} defaultOpen />
       </div>
 
       <section className="rounded-2xl border border-dashed border-border/50 bg-muted/5 p-4">
