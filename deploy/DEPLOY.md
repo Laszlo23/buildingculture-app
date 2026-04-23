@@ -40,6 +40,24 @@ git push -u origin main
 
 Use a **private** repo if `.env` secrets could ever be committed by mistake (this project gitignores `.env`).
 
+### Remote redeploy from your laptop
+
+With `VPS_IP`, `VPS_USERNAME`, and `VPS_PASSWORD` set in your **local** `.env` (gitignored) and [`sshpass`](https://sourceforge.net/projects/sshpass/) installed:
+
+```bash
+./scripts/deploy-from-env.sh
+```
+
+This SSHs to the VPS, `git pull`s under `DEPLOY_PATH` (default `/var/www/buildingculture/app`), runs `npm ci` + `npm run build:prod`, rebuilds the Docker **api** image when compose is present, and reloads nginx when applicable. See `scripts/redeploy-remote.sh` for `DEPLOY_MODE`, `FORCE_BUILD`, etc.
+
+To **upload your local `.env` to the server first** (overwrites `$DEPLOY_PATH/.env` — use only when you intend to sync secrets):
+
+```bash
+SYNC_ENV=1 ./scripts/deploy-from-env.sh
+```
+
+You can also set `DEPLOY_PATH` in `.env` or export it before running.
+
 ## 3. VPS: Node.js and app directory
 
 Example (Ubuntu):
