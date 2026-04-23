@@ -1,6 +1,24 @@
 require("@nomicfoundation/hardhat-toolbox");
 require("dotenv").config();
 
+/** Prefer a deploy-only key so Hardhat does not have to reuse the API signer wallet. */
+function deployerPrivateKeys() {
+  const raw = (
+    process.env.DEPLOY_PRIVATE_KEY ||
+    process.env.HARDHAT_PRIVATE_KEY ||
+    process.env.PRIVATE_KEY ||
+    ""
+  ).trim();
+  if (!raw) return [];
+  const pk = raw.startsWith("0x") || raw.startsWith("0X") ? raw : `0x${raw}`;
+  if (!/^0x[0-9a-fA-F]{64}$/.test(pk)) {
+    console.warn(
+      "[hardhat] Deploy key must be 32-byte hex (with or without 0x). Check DEPLOY_PRIVATE_KEY / PRIVATE_KEY.",
+    );
+  }
+  return [pk];
+}
+
 function alchemyHttpUrl(chainId) {
   const k = process.env.ALCHEMY_API_KEY?.trim();
   if (!k) return null;
@@ -26,7 +44,7 @@ module.exports = {
     hardhat: { chainId: 31337 },
     baseSepolia: {
       url: alchemyHttpUrl(84532) || process.env.RPC_URL || "https://sepolia.base.org",
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      accounts: deployerPrivateKeys(),
       chainId: 84532,
     },
     /** Base mainnet — use ALCHEMY_API_KEY, BASE_MAINNET_RPC_URL, or public fallback */
@@ -35,7 +53,7 @@ module.exports = {
         alchemyHttpUrl(8453) ||
         process.env.BASE_MAINNET_RPC_URL ||
         "https://mainnet.base.org",
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      accounts: deployerPrivateKeys(),
       chainId: 8453,
       gasMultiplier: 1.15,
     },

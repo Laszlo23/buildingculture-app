@@ -34,7 +34,15 @@ async function sleep(ms) {
 }
 
 async function main() {
-  const [deployer] = await hre.ethers.getSigners();
+  const signers = await hre.ethers.getSigners();
+  if (!signers.length) {
+    console.error(
+      "No deployer account. Set DEPLOY_PRIVATE_KEY (recommended) or PRIVATE_KEY in .env — 0x + 64 hex chars.",
+    );
+    console.error("Also set ALCHEMY_API_KEY or RPC_URL so Hardhat can reach Base / Base Sepolia.");
+    process.exit(1);
+  }
+  const [deployer] = signers;
   const net = await hre.ethers.provider.getNetwork();
   const chainId = Number(net.chainId);
   const opts = await txOpts(chainId, 200);

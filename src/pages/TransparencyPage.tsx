@@ -1,6 +1,6 @@
 import { ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
-import { usePortfolio } from "@/hooks/useChainData";
+import { useConnectedPortfolio } from "@/hooks/useChainData";
 import { explorerTxUrl } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 
@@ -8,7 +8,7 @@ const ROWS: Array<{ metric: string; source: string; detail: string }> = [
   {
     metric: "Total savings (your vault position)",
     source: "On-chain",
-    detail: "Read via `SavingsVault.balanceOf(signer)` in the API multicall.",
+    detail: "Read via `SavingsVault.balanceOf(address)` in the API multicall (`GET /api/portfolio?address=` when connected).",
   },
   {
     metric: "Yield earned",
@@ -61,7 +61,7 @@ const ROWS: Array<{ metric: string; source: string; detail: string }> = [
 ];
 
 export const TransparencyPage = () => {
-  const { data: portfolio, isLoading } = usePortfolio();
+  const { data: portfolio, isLoading } = useConnectedPortfolio();
   const chainId = portfolio?.chainId ?? 8453;
   const events = portfolio?.registryRecentEvents ?? [];
   const keeper = portfolio?.keeperStack;

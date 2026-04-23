@@ -1,13 +1,14 @@
 import { useCallback, useMemo, useState } from "react";
 import { parseUnits } from "viem";
+import { waitForTransactionReceipt, writeContract } from "viem/actions";
 import { base, baseSepolia } from "wagmi/chains";
 import {
   useChainId,
   useConnection,
-  useConnectorClient,
   usePublicClient,
   useReadContract,
   useSwitchChain,
+  useWalletClient,
 } from "wagmi";
 import { HandCoins, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
@@ -38,7 +39,6 @@ export function GmMicroFinancingFab() {
   const { address, status } = useConnection();
   const chainId = useChainId();
   const { data: cfg } = useChainConfig();
-  const { data: walletClient } = useConnectorClient();
   const { switchChainAsync, isPending: switching } = useSwitchChain();
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
@@ -46,6 +46,7 @@ export function GmMicroFinancingFab() {
   const expectedChainId = targetChainIdFromEnv();
   const targetChain = expectedChainId === baseSepolia.id ? baseSepolia : base;
   const publicClient = usePublicClient({ chainId: expectedChainId });
+  const { data: walletClient } = useWalletClient({ chainId: expectedChainId });
 
   const usdcAddress = useMemo(() => {
     const fromApi = cfg?.contracts?.assetToken?.trim();
@@ -84,14 +85,15 @@ export function GmMicroFinancingFab() {
     }
     setPending(true);
     try {
-      const hash = await walletClient.writeContract({
+      const hash = await writeContract(walletClient, {
         address: usdcAddress,
         abi: erc20MinimalAbi,
         functionName: "transfer",
         args: [GM_RECIPIENT, GM_USDC_AMOUNT],
         chain: targetChain,
+        account: address as `0x${string}`,
       });
-      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+      const receipt = await waitForTransactionReceipt(publicClient, { hash });
       if (receipt.status !== "success") throw new Error("Transfer failed");
       toast.success("GM — 1.11 USDC sent. Thank you for micro-financing the club.");
       setOpen(false);

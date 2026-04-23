@@ -25,9 +25,12 @@ import {
   useWeb3BioProfileQuery,
 } from "@/hooks/useCommunity";
 import { useFarcasterQuery } from "@/hooks/useFarcaster";
+import { useXUserQuery } from "@/hooks/useXUser";
 import type { MemberProfileDto } from "@/lib/api";
 import { web3BioAvatarSrc } from "@/lib/web3bioFetch";
 import { FarcasterProfileCard } from "@/components/social/FarcasterProfileCard";
+import { XProfileCard } from "@/components/social/XProfileCard";
+import { xHandleFromSocialInput } from "@/lib/xSocial";
 
 function isRecord(x: unknown): x is Record<string, unknown> {
   return typeof x === "object" && x !== null && !Array.isArray(x);
@@ -174,6 +177,14 @@ export const ProfilePage = () => {
     const text = encodeURIComponent(`Growing wealth with Onchain Savings Club ${origin}`);
     return `https://twitter.com/intent/tweet?text=${text}`;
   }, []);
+
+  const xHandle = useMemo(() => xHandleFromSocialInput(socials.twitter), [socials.twitter]);
+  const {
+    data: xUserRes,
+    isLoading: xLoading,
+    isError: xIsError,
+    error: xErr,
+  } = useXUserQuery(xHandle);
 
   const save = () => {
     if (!address) return;
@@ -490,6 +501,48 @@ export const ProfilePage = () => {
             user={farcaster.user}
             onUseLink={(url) => setSocials((s) => ({ ...s, farcaster: url }))}
           />
+        )}
+      </section>
+
+      {/* X (developer.x.com API credits) */}
+      <section className="glass-card p-6 space-y-4">
+        <div>
+          <h2 className="font-display font-semibold text-lg">X profile</h2>
+          <p className="text-xs text-muted-foreground mt-0.5 max-w-prose">
+            When your <strong>X (Twitter) URL</strong> above includes a handle, we can fetch public profile fields via the
+            X API v2 (uses your <span className="font-mono text-[10px]">developer.x.com</span> credits — each lookup
+            is billed). Server key: <code className="text-[10px]">X_API_BEARER_TOKEN</code> — never exposed to the
+            browser.
+          </p>
+        </div>
+        {!xHandle && (
+          <p className="text-sm text-muted-foreground">
+            Add an X profile link (e.g. <code className="text-[10px]">https://x.com/yourhandle</code>) in{" "}
+            <strong>About you</strong>, save, and a preview will load here when the API is configured.
+          </p>
+        )}
+        {xHandle && xLoading && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+            <Loader2 className="w-4 h-4 animate-spin" /> Loading X profile…
+          </div>
+        )}
+        {xHandle && xIsError && (
+          <p className="text-sm text-destructive">{xErr instanceof Error ? xErr.message : "Could not reach the API."}</p>
+        )}
+        {xHandle && !xLoading && !xIsError && xUserRes && !xUserRes.configured && (
+          <p className="text-sm text-muted-foreground">
+            X API is not configured. Add <code className="text-[10px]">X_API_BEARER_TOKEN</code> from{" "}
+            <a href="https://developer.x.com" target="_blank" rel="noopener noreferrer" className="text-primary underline">
+              developer.x.com
+            </a>{" "}
+            to the server <code className="text-[10px]">.env</code> and restart the API.
+          </p>
+        )}
+        {xHandle && !xLoading && !xIsError && xUserRes && xUserRes.configured && "error" in xUserRes && xUserRes.error && (
+          <p className="text-sm text-destructive">{xUserRes.error.message}</p>
+        )}
+        {xHandle && !xLoading && !xIsError && xUserRes && xUserRes.configured && !("error" in xUserRes) && xUserRes.user && (
+          <XProfileCard user={xUserRes.user} />
         )}
       </section>
 

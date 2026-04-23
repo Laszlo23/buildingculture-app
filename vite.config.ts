@@ -27,6 +27,8 @@ export default defineConfig(({ mode, command }) => {
   const apiTarget = `http://127.0.0.1:${apiPort}`;
   const devApiProxy = {
     "/api": { target: apiTarget, changeOrigin: true },
+    "/users": { target: apiTarget, changeOrigin: true },
+    "/pipeflare": { target: apiTarget, changeOrigin: true },
     "/health": { target: apiTarget, changeOrigin: true },
   } as const;
 

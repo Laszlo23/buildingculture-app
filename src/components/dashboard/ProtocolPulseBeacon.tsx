@@ -5,7 +5,7 @@ import { Activity, Database, ExternalLink, Zap } from "lucide-react";
 import { explorerBlockUrl } from "@/lib/api";
 import {
   useChainConfig,
-  usePortfolio,
+  useConnectedPortfolio,
   useProposals,
   useProtocolPulse,
   useTreasury,
@@ -49,7 +49,7 @@ type PulseVariant = "default" | "supporting";
  */
 export function ProtocolPulseBeacon({ variant = "default" }: { variant?: PulseVariant }) {
   const pulseQ = useProtocolPulse();
-  const portQ = usePortfolio();
+  const portQ = useConnectedPortfolio();
   const treasQ = useTreasury();
   const propQ = useProposals();
   const chainQ = useChainConfig();

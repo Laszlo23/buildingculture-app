@@ -2,7 +2,7 @@ import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
-import { parseUnits } from "viem";
+import { isAddress, parseUnits } from "viem";
 import { ZodError } from "zod";
 import { getChain, getSignerAddress } from "./lib/chain.js";
 import { getEnv } from "./lib/env.js";
@@ -67,10 +67,14 @@ import {
 } from "./services/daoVotingRewards.js";
 import { buildProtocolPulse } from "./services/protocolPulse.ts";
 import { fetchBinanceKlines } from "./services/binanceKlines.ts";
+import { registerAgentRoutes } from "./routes/agents.js";
+import { registerPaperclipHttpAdapterRoutes } from "./routes/paperclipHttpAdapter.js";
+import { registerPipeflareRoutes } from "./routes/pipeflare.js";
 import { registerAiRoutes } from "./routes/ai.js";
 import { registerSocialRoutes } from "./routes/social.js";
 import { initAppDatabase } from "./lib/db.js";
 import { isAiConfigured, isCommunityAgentInChatEnabled } from "./lib/aiEnv.js";
+import { isXApiConfigured } from "./lib/xApiEnv.js";
 
 initAppDatabase();
 
@@ -96,14 +100,72 @@ app.use(
       return env.CORS_ORIGIN;
     },
     allowMethods: ["GET", "POST", "PUT", "OPTIONS"],
-    allowHeaders: ["Content-Type", "Authorization"],
+    allowHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Pipeflare-Webhook-Secret",
+      "X-Paperclip-Adapter-Secret",
+      "X-Paperclip-Run-Id",
+    ],
   }),
 );
 
 app.get("/health", (c) => c.json({ ok: true }));
 
+registerPipeflareRoutes(app);
+registerPaperclipHttpAdapterRoutes(app);
 registerSocialRoutes(app);
+registerAgentRoutes(app);
 registerAiRoutes(app);
+
+function apiPublicOrigin(): string {
+  try {
+    return new URL(getEnv().API_PUBLIC_ORIGIN.trim()).origin;
+  } catch {
+    return "https://api.buildingculture.capital";
+  }
+}
+
+/** Canonical premium check for `https://api.buildingculture.capital/users/premium` (requires `?address=0x…`). */
+app.get("/users/premium", async (c) => {
+  const raw = c.req.query("address");
+  if (!raw || !isAddress(raw)) {
+    return c.json(
+      {
+        error: {
+          message:
+            "Query parameter `address` (0x + 40 hex) is required. Example: /users/premium?address=0x…",
+        },
+      },
+      400,
+    );
+  }
+  const address = raw.toLowerCase() as `0x${string}`;
+  try {
+    const elig = await buildNftEligibility(address);
+    const savings = elig.vaultPatron.savings;
+    const min = elig.vaultPatron.minDeposit;
+    const vaultMeetsMin = savings >= min;
+    const vaultPatronNft = elig.vaultPatron.mintedOnChain;
+    const hasLearningCredential = (["rwa", "authenticity", "truth"] as const).some(
+      id => elig.routes[id].mintedOnChain,
+    );
+    const premium = vaultMeetsMin || vaultPatronNft || hasLearningCredential;
+    return c.json({
+      premium,
+      address,
+      criteria: {
+        vaultSavings: savings,
+        vaultPatronMinDeposit: min,
+        vaultMeetsMin,
+        vaultPatronNft,
+        hasLearningCredential,
+      },
+    });
+  } catch (e) {
+    return c.json({ error: formatRouteError(e) }, 500);
+  }
+});
 
 app.get("/api/wallet", (c) => {
   try {
@@ -123,12 +185,21 @@ app.get("/api/config", (c) => {
     } catch {
       /* keep default */
     }
+    const origin = apiPublicOrigin();
     return c.json({
       chainId: env.CHAIN_ID,
       chainName: getChain().name,
+      usersPremium: {
+        url: `${origin}/users/premium`,
+        requiredQueryParams: ["address"],
+      },
       ai: {
         langbaseConfigured: isAiConfigured(),
         communityAgentInChat: isCommunityAgentInChatEnabled(),
+      },
+      x: {
+        /** X API v2 (developer.x.com credits) — server-only bearer */
+        apiConfigured: isXApiConfigured(),
       },
       contracts: {
         vault: env.VAULT_CONTRACT,
@@ -182,7 +253,14 @@ app.get("/api/protocol/pulse", async (c) => {
 
 app.get("/api/portfolio", async (c) => {
   try {
-    const data = await fetchPortfolio();
+    const q = c.req.query("address")?.trim();
+    if (q && !isAddress(q)) {
+      return c.json({ error: { message: "Invalid address query" } }, 400);
+    }
+    const data =
+      q && isAddress(q)
+        ? await fetchPortfolioForAddress(q.toLowerCase() as `0x${string}`)
+        : await fetchPortfolio();
     return c.json(data);
   } catch (e) {
     return c.json({ error: serializeError(e) }, 500);
@@ -599,6 +677,6 @@ const port = getEnv().PORT;
 const listenHost = process.env.API_LISTEN_HOST?.trim() || "127.0.0.1";
 console.log(`API listening on http://${listenHost}:${port}`);
 console.log(
-  "[api] Routes include GET /api/tasks/daily, /api/profile, /api/wealth/:address, /api/leaderboard, /api/community/messages — if any 404 while older routes work, restart this process (stale tsx node).",
+  "[api] Routes include GET/POST /api/paperclip/http-agent, GET/POST /pipeflare/callback, GET /api/agents, GET /users/premium, GET /api/tasks/daily, /api/profile, /api/wealth/:address, /api/leaderboard, /api/community/messages — if any 404 while older routes work, restart this process (stale tsx node).",
 );
 serve({ fetch: app.fetch, port, hostname: listenHost });

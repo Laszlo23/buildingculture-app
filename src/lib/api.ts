@@ -252,6 +252,25 @@ export type FarcasterUserDto = {
   url: string;
 };
 
+/** X (Twitter) API v2 — public fields only; billed per lookup on developer.x.com */
+export type SocialXUserDto = {
+  id: string;
+  username: string;
+  name: string;
+  description: string | null;
+  profileImageUrl: string | null;
+  followersCount: number | null;
+  followingCount: number | null;
+  tweetCount: number | null;
+  verified: boolean | null;
+  url: string | null;
+};
+
+export type SocialXUserResponse =
+  | { configured: false; user: null }
+  | { configured: true; user: SocialXUserDto }
+  | { configured: true; user: null; error: { message: string; code?: string } };
+
 export type MemberProfileDto = {
   bio: string;
   socials: {
@@ -371,17 +390,65 @@ export type BuildingCulturePipeResponseDto = {
   threadId?: string;
 };
 
+/** GET /users/premium?address=0x… — production: https://api.buildingculture.capital/users/premium */
+export type UsersPremiumDto = {
+  premium: boolean;
+  address: string;
+  criteria: {
+    vaultSavings: number;
+    vaultPatronMinDeposit: number;
+    vaultMeetsMin: boolean;
+    vaultPatronNft: boolean;
+    hasLearningCredential: boolean;
+  };
+};
+
+export type PlatformAgentHookDto = {
+  method: "GET" | "POST";
+  path: string;
+  description: string;
+};
+
+export type PlatformAgentIntegrationStatus = "ready" | "partial" | "not_configured";
+
+export type PlatformAgentCardDto = {
+  id: string;
+  name: string;
+  shortGoal: string;
+  integrationStatus: PlatformAgentIntegrationStatus;
+  missingConfig: string[];
+  platformPath?: string;
+  apiHooks: PlatformAgentHookDto[];
+  notes?: string;
+};
+
+export type PlatformAgentsDto = {
+  agents: PlatformAgentCardDto[];
+  meta: { apiOrigin: string };
+};
+
 export const chainApi = {
   wallet: () => apiGet<{ address: string; chainId: number }>("/api/wallet"),
+
+  /** On-chain–derived premium (vault balance vs patron minimum, patron NFT, or any learning credential NFT). */
+  getUsersPremium: (address: string) =>
+    apiGet<UsersPremiumDto>(`/users/premium?address=${encodeURIComponent(address)}`),
+
+  /** Automation catalog: which “agents” map to this API + UI and what is still unconfigured */
+  getPlatformAgents: () => apiGet<PlatformAgentsDto>("/api/agents"),
+
   config: () =>
     apiGet<{
       chainId: number;
       chainName: string;
+      /** Canonical GET URL; requires `?address=0x…`. Same path on dev when Vite proxies `/users`. */
+      usersPremium?: { url: string; requiredQueryParams: string[] };
       contracts: Record<string, string | null>;
       assetDecimals: number;
       vaultPatronMinDeposit?: number;
       binance?: { apiKeyConfigured: boolean; restHost: string };
       ai?: { langbaseConfigured: boolean; communityAgentInChat: boolean };
+      x?: { apiConfigured: boolean };
     }>("/api/config"),
 
   getBinanceKlines: (params: { symbol: string; interval: string; limit?: number }) => {
@@ -391,7 +458,13 @@ export const chainApi = {
     if (params.limit != null) q.set("limit", String(params.limit));
     return apiGet<BinanceKlinesDto>(`/api/market/binance/klines?${q.toString()}`);
   },
-  portfolio: () => apiGet<PortfolioDto>("/api/portfolio"),
+  /** Omit `address` to use the server signer portfolio (operator / demo). Pass a wallet to read that vault user. */
+  portfolio: (address?: string) =>
+    apiGet<PortfolioDto>(
+      address && /^0x[a-fA-F0-9]{40}$/i.test(address)
+        ? `/api/portfolio?address=${encodeURIComponent(address)}`
+        : "/api/portfolio",
+    ),
   treasury: () => apiGet<TreasuryDto>("/api/treasury"),
   /** Protocol “secret weapon”: sub-second read bundle for dashboards and embeds. */
   getProtocolPulse: () => apiGet<ProtocolPulseDto>("/api/protocol/pulse"),
@@ -464,6 +537,10 @@ export const chainApi = {
       users: Record<string, FarcasterUserDto | null>;
     }>(`/api/social/farcaster?addresses=${encodeURIComponent(unique.join(","))}`);
   },
+
+  /** X user lookup by handle (consumes API credits). Server: X_API_BEARER_TOKEN */
+  getSocialXUser: (username: string) =>
+    apiGet<SocialXUserResponse>(`/api/social/x/user?username=${encodeURIComponent(username.replace(/^@/, ""))}`),
 
   askBuildingCultureClub: (body: BuildingCulturePipeRequest) =>
     apiPost<BuildingCulturePipeResponseDto, BuildingCulturePipeRequest>(

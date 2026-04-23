@@ -6,7 +6,7 @@ import { StatCard } from "@/components/StatCard";
 import { LevelProgress } from "@/components/LevelProgress";
 import { Badge } from "@/components/ui/badge";
 import { strategies as staticStrategies, userStats, growthData, levels } from "@/data/club";
-import { mergeStrategiesForUi, usePortfolio } from "@/hooks/useChainData";
+import { mergeStrategiesForUi, useConnectedPortfolio } from "@/hooks/useChainData";
 import { cn } from "@/lib/utils";
 import { useMemo } from "react";
 
@@ -20,7 +20,7 @@ const achievements = [
 ];
 
 export const PortfolioPage = () => {
-  const { data: portfolio, isLoading, isError } = usePortfolio();
+  const { data: portfolio, isLoading, isError } = useConnectedPortfolio();
   const mergedStrategies = useMemo(
     () => mergeStrategiesForUi(portfolio, staticStrategies),
     [portfolio],

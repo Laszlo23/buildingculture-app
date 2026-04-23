@@ -2,8 +2,7 @@ import { Pipe } from "@baseai/core";
 import type { PipeI } from "@baseai/core";
 import type { Context, Hono } from "hono";
 import { ZodError } from "zod";
-import buildingCulturePipeFactory from "../../baseai/pipes/building-culture-club.ts";
-import communityBuilderPipeFactory from "../../baseai/pipes/community-builder.ts";
+import { agentPipeFactories, listAgentPipeIds } from "../agents/agentAdapters.js";
 import { isAiConfigured } from "../lib/aiEnv.js";
 import { allowAiPipeRequest, clientKeyFromRequest } from "../services/aiPipeRateLimit.js";
 import { serializeError } from "../services/tx.ts";
@@ -60,6 +59,16 @@ async function runLangbasePipeCompletion(
 }
 
 export function registerAiRoutes(app: Hono) {
+  app.get("/api/ai/agents", (c) => {
+    const ids = listAgentPipeIds();
+    return c.json({
+      agents: ids.map(id => ({
+        id,
+        postPath: `/api/ai/pipe/${id}`,
+      })),
+    });
+  });
+
   const handlePipe =
     (factory: () => PipeI) =>
     async (c: Context) => {
@@ -92,6 +101,7 @@ export function registerAiRoutes(app: Hono) {
       }
     };
 
-  app.post("/api/ai/pipe/building-culture-club", handlePipe(buildingCulturePipeFactory));
-  app.post("/api/ai/pipe/community-builder", handlePipe(communityBuilderPipeFactory));
+  for (const id of listAgentPipeIds()) {
+    app.post(`/api/ai/pipe/${id}`, handlePipe(agentPipeFactories[id]));
+  }
 }

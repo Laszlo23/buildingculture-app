@@ -26,6 +26,7 @@ import { InvitesPage } from "./pages/InvitesPage";
 import { InvitePage } from "./pages/InvitePage";
 import { TeamPage } from "./pages/TeamPage";
 import { StrategyBacktestRoadmapPage } from "./pages/StrategyBacktestRoadmapPage";
+import { AgentsPage } from "./pages/AgentsPage";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +51,7 @@ const App = () => (
             <Route path="/academy" element={wrap(<AcademyPage />)} />
             <Route path="/academy/:routeId" element={wrap(<LearningRoutePage />)} />
             <Route path="/dao" element={wrap(<DAOPage />)} />
+            <Route path="/agents" element={wrap(<AgentsPage />)} />
             <Route path="/community" element={wrap(<CommunityPage />)} />
             <Route path="/membership" element={wrap(<MembershipPage />)} />
             <Route path="/profile" element={wrap(<ProfilePage />)} />

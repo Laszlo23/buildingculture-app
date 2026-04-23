@@ -1,14 +1,15 @@
 import { useCallback, useMemo, useState } from "react";
 import { parseUnits, formatUnits, maxUint256 } from "viem";
 import type { Abi } from "viem";
+import { readContract, waitForTransactionReceipt, writeContract } from "viem/actions";
 import { base, baseSepolia } from "wagmi/chains";
 import {
   useChainId,
   useConnection,
-  useConnectorClient,
   usePublicClient,
   useReadContract,
   useSwitchChain,
+  useWalletClient,
 } from "wagmi";
 import { ArrowUpRight, ExternalLink, Loader2, Settings2 } from "lucide-react";
 import { toast } from "sonner";
@@ -61,8 +62,8 @@ export function VillaPocBuyCard() {
   const { address, status } = useConnection();
   const chainId = useChainId();
   const { switchChainAsync, isPending: switching } = useSwitchChain();
-  const { data: walletClient } = useConnectorClient();
   const publicClient = usePublicClient({ chainId: expectedChainId });
+  const { data: walletClient } = useWalletClient({ chainId: expectedChainId });
 
   const [mode, setMode] = useState<"buy" | "sell">("buy");
   const [usdcInput, setUsdcInput] = useState("10");
@@ -148,7 +149,8 @@ export function VillaPocBuyCard() {
 
   const tokensOut = preview?.[0] ?? 0n;
   const usdcNeeded = preview?.[1] ?? 0n;
-  const needApprove = allowance != null && budgetMicro > 0n && allowance < budgetMicro;
+  /** Treat loading allowance as 0 so we do not skip Approve when React Query has not resolved yet. */
+  const needApprove = budgetMicro > 0n && (allowance ?? 0n) < budgetMicro;
 
   const usdcBalDisplay =
     usdcBalance != null ? trimDisplay(formatUnits(usdcBalance as bigint, 6), 4) : "0";
@@ -171,10 +173,13 @@ export function VillaPocBuyCard() {
   }, [expectedChainId, switchChainAsync]);
 
   const onApprove = useCallback(async () => {
-    if (!walletClient || !address || !curveAddr || !usdcAddr) return;
+    if (!walletClient || !address || !curveAddr || !usdcAddr) {
+      if (!walletClient) toast.error("Wallet not ready — try again in a moment.");
+      return;
+    }
     setPending("approve");
     try {
-      const hash = await walletClient.writeContract({
+      const hash = await writeContract(walletClient, {
         address: usdcAddr,
         abi: erc20MinimalAbi,
         functionName: "approve",
@@ -182,7 +187,7 @@ export function VillaPocBuyCard() {
         chain: targetChain,
         account: address as `0x${string}`,
       });
-      if (publicClient) await publicClient.waitForTransactionReceipt({ hash });
+      if (publicClient) await waitForTransactionReceipt(publicClient, { hash });
       await refetchAllowance();
       toast.success("USDC allowance set");
     } catch (e) {
@@ -193,10 +198,31 @@ export function VillaPocBuyCard() {
   }, [address, curveAddr, publicClient, refetchAllowance, targetChain, usdcAddr, walletClient]);
 
   const onBuy = useCallback(async () => {
-    if (!walletClient || !address || !curveAddr || budgetMicro <= 0n) return;
+    if (!walletClient || !address || !curveAddr || budgetMicro <= 0n) {
+      if (!walletClient) toast.error("Wallet not ready — try again in a moment.");
+      return;
+    }
     setPending("buy");
     try {
-      const hash = await walletClient.writeContract({
+      let allow = allowance ?? 0n;
+      if (publicClient && usdcAddr) {
+        try {
+          allow = await readContract(publicClient, {
+            address: usdcAddr,
+            abi: erc20MinimalAbi,
+            functionName: "allowance",
+            args: [address as `0x${string}`, curveAddr],
+          });
+        } catch {
+          /* use allowance from hook */
+        }
+      }
+      if (allow < budgetMicro) {
+        toast.error("Approve USDC for the curve first, then buy.");
+        setPending(null);
+        return;
+      }
+      const hash = await writeContract(walletClient, {
         address: curveAddr,
         abi: curveAbi,
         functionName: "buy",
@@ -204,14 +230,14 @@ export function VillaPocBuyCard() {
         chain: targetChain,
         account: address as `0x${string}`,
       });
-      if (publicClient) await publicClient.waitForTransactionReceipt({ hash });
+      if (publicClient) await waitForTransactionReceipt(publicClient, { hash });
       toast.success("Purchase confirmed");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Buy failed");
     } finally {
       setPending(null);
     }
-  }, [address, budgetMicro, curveAddr, publicClient, targetChain, walletClient]);
+  }, [address, allowance, budgetMicro, curveAddr, publicClient, targetChain, usdcAddr, walletClient]);
 
   if (!curveAddr) return null;
 

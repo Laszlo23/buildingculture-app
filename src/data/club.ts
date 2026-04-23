@@ -9,6 +9,7 @@ export const navItems = [
   { name: "Reserves", path: "/reserves", icon: "Landmark" },
   { name: "Academy", path: "/academy", icon: "GraduationCap" },
   { name: "DAO", path: "/dao", icon: "Vote" },
+  { name: "Agents", path: "/agents", icon: "Bot" },
   { name: "Community", path: "/community", icon: "Users" },
   { name: "Membership", path: "/membership", icon: "Gem" },
   { name: "Profile", path: "/profile", icon: "UserCircle" },

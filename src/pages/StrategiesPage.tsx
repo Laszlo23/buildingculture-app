@@ -5,7 +5,7 @@ import { strategies as staticStrategies } from "@/data/club";
 import { StrategyCard } from "@/components/StrategyCard";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { mergeStrategiesForUi, useAllocateMutation, usePortfolio } from "@/hooks/useChainData";
+import { mergeStrategiesForUi, useAllocateMutation, useConnectedPortfolio } from "@/hooks/useChainData";
 import { TransactionConfirmDialog } from "@/components/TransactionConfirmDialog";
 import { Input } from "@/components/ui/input";
 
@@ -18,7 +18,7 @@ export const StrategiesPage = () => {
   const [bps, setBps] = useState("2500");
   const [allocOpen, setAllocOpen] = useState(false);
 
-  const { data: portfolio, isLoading } = usePortfolio();
+  const { data: portfolio, isLoading } = useConnectedPortfolio();
   const allocateMut = useAllocateMutation();
 
   const merged = useMemo(() => mergeStrategiesForUi(portfolio, staticStrategies), [portfolio]);

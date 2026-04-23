@@ -26,6 +26,15 @@ const envSchema = z
   /** Comma-separated proposal ids for governance reads */
   PROPOSAL_IDS: z.string().optional().default("42,41,40,39"),
   CORS_ORIGIN: z.string().optional().default("http://localhost:8080"),
+  /**
+   * Public browser-facing API origin (no path). Used in GET /api/config for `usersPremium.url`
+   * (GET /users/premium). Default matches production API host.
+   */
+  API_PUBLIC_ORIGIN: z
+    .string()
+    .url()
+    .optional()
+    .default("https://api.buildingculture.capital"),
   /** LearningAchievement contract; 0x0 disables mint endpoints */
   LEARNING_NFT_CONTRACT: z
     .string()

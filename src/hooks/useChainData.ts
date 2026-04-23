@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useConnection } from "wagmi";
 import { chainApi, explorerTxUrl, type PortfolioDto, type ProposalDto, type ProtocolPulseDto } from "@/lib/api";
 
 export const qk = {
@@ -27,12 +28,27 @@ export function useChainConfig() {
   });
 }
 
-export function usePortfolio() {
+/**
+ * On-chain portfolio reads. Pass `address` (0x + 40 hex) for that wallet’s vault/DAO view; omit for server signer (demo).
+ * Prefer `useConnectedPortfolio()` in member UI.
+ */
+export function usePortfolio(address?: string | null) {
+  const normalized =
+    address && typeof address === "string" && /^0x[a-fA-F0-9]{40}$/i.test(address)
+      ? address.toLowerCase()
+      : undefined;
   return useQuery({
-    queryKey: qk.portfolio,
-    queryFn: () => chainApi.portfolio(),
+    queryKey: normalized ? ([...qk.portfolio, normalized] as const) : qk.portfolio,
+    queryFn: () => chainApi.portfolio(normalized),
     retry: 1,
   });
+}
+
+/** Uses the connected wagmi wallet when connected; otherwise the server signer portfolio. */
+export function useConnectedPortfolio() {
+  const { address, status } = useConnection();
+  const wallet = status === "connected" && address && /^0x[a-fA-F0-9]{40}$/i.test(address) ? address : undefined;
+  return usePortfolio(wallet);
 }
 
 export function useTreasury() {

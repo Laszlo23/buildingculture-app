@@ -1,6 +1,8 @@
 import type { Hono } from "hono";
 import { isNeynarConfigured } from "../lib/neynarEnv.js";
+import { isXApiConfigured } from "../lib/xApiEnv.js";
 import { fetchFarcasterByAddresses } from "../services/neynarClient.ts";
+import { fetchXUserByUsername } from "../services/xApiClient.ts";
 
 const ADDR = /^0x[a-fA-F0-9]{40}$/i;
 
@@ -31,6 +33,30 @@ function parseList(addresses: string | undefined, single: string | undefined): {
  * GET ?addresses=0x,0y — up to 50, for batch UIs
  */
 export function registerSocialRoutes(app: Hono) {
+  /**
+   * X (Twitter) user by handle — uses your dev.x.com credits (Bearer / app token).
+   * GET ?username=buildingcultu3 (no @). Server-only key: X_API_BEARER_TOKEN.
+   */
+  app.get("/api/social/x/user", async (c) => {
+    const raw = c.req.query("username")?.trim().replace(/^@/, "") ?? "";
+    if (!raw) {
+      return c.json({ error: { message: "Query ?username=handle is required (without @)." } }, 400);
+    }
+    if (!isXApiConfigured()) {
+      return c.json({ configured: false, user: null as null });
+    }
+    const result = await fetchXUserByUsername(raw);
+    if (!result.ok) {
+      /** 200 so browser apiGet does not throw; callers read `error` and conserve retries on 429-style messages */
+      return c.json({
+        configured: true,
+        user: null as null,
+        error: { message: result.message, code: String(result.status) },
+      });
+    }
+    return c.json({ configured: true, user: result.user });
+  });
+
   app.get("/api/social/farcaster", async (c) => {
     const address = c.req.query("address");
     const addresses = c.req.query("addresses");

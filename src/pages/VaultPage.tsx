@@ -1,20 +1,32 @@
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import { formatUnits } from "viem";
+import { useConnection } from "wagmi";
 import { Wallet, Plus, ArrowDownToLine, Info, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { TransactionConfirmDialog } from "@/components/TransactionConfirmDialog";
 import { strategies as staticStrategies } from "@/data/club";
 import {
   mergeStrategiesForUi,
   useChainConfig,
+  useConnectedPortfolio,
   useDepositMutation,
-  usePortfolio,
   useWithdrawMutation,
 } from "@/hooks/useChainData";
+import { useMemberVaultWallet } from "@/hooks/useMemberVaultWallet";
 import { cn } from "@/lib/utils";
 import { VerifyOnChainStrip } from "@/components/dashboard/VerifyOnChainStrip";
-import { Link } from "react-router-dom";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { WalletConnectButton } from "@/components/wallet/WalletConnectButton";
+
+function trimDisplayAmount(raw: string, maxFrac = 8) {
+  const n = raw.trim();
+  if (!n) return "0";
+  const [a, b = ""] = n.split(".");
+  if (!b) return a;
+  const t = b.slice(0, maxFrac).replace(/0+$/, "");
+  return t.length ? `${a}.${t}` : a;
+}
 
 export const VaultPage = () => {
   const [searchParams] = useSearchParams();
@@ -29,10 +41,12 @@ export const VaultPage = () => {
     if (tabParam === "withdraw" || tabParam === "deposit") setTab(tabParam);
   }, [tabParam]);
 
-  const { data: portfolio, isLoading: portfolioLoading } = usePortfolio();
+  const { status } = useConnection();
+  const { data: portfolio, isLoading: portfolioLoading } = useConnectedPortfolio();
   const { data: chainConfig } = useChainConfig();
   const depositMut = useDepositMutation();
   const withdrawMut = useWithdrawMutation();
+  const walletVault = useMemberVaultWallet();
 
   const decimals = chainConfig?.assetDecimals ?? 6;
 
@@ -57,10 +71,23 @@ export const VaultPage = () => {
   ];
 
   const selected = tokens[0]!;
-  const pending = depositMut.isPending || withdrawMut.isPending;
+  const serverPending = depositMut.isPending || withdrawMut.isPending;
+  const walletPending = walletVault.pending != null;
+  const pending = walletPending || (status !== "connected" && serverPending);
 
-  const executeTab = () => {
+  const executeTab = async () => {
     if (!amount.trim()) return;
+    if (status === "connected") {
+      if (tab === "deposit") {
+        if (!walletVault.canWalletDeposit) return;
+        const ok = await walletVault.depositFromWallet(amount);
+        if (ok) setConfirmOpen(false);
+      } else {
+        const ok = await walletVault.withdrawFromWallet(amount);
+        if (ok) setConfirmOpen(false);
+      }
+      return;
+    }
     if (tab === "deposit") {
       depositMut.mutate(
         { amount, decimals },
@@ -74,7 +101,71 @@ export const VaultPage = () => {
     }
   };
 
+  const depositBalanceLabel = useMemo(() => {
+    if (tab !== "deposit") return null;
+    if (status === "connected" && walletVault.canWalletDeposit && walletVault.walletTokenBalance != null) {
+      return `Wallet USDC: ${trimDisplayAmount(formatUnits(walletVault.walletTokenBalance, decimals), 6)}`;
+    }
+    if (status === "connected" && walletVault.nativeVault) {
+      return "Set ASSET_TOKEN on the API for USDC wallet deposits";
+    }
+    if (status !== "connected") {
+      return "Connect your wallet to deposit your own USDC";
+    }
+    return null;
+  }, [
+    decimals,
+    status,
+    tab,
+    walletVault.canWalletDeposit,
+    walletVault.nativeVault,
+    walletVault.walletTokenBalance,
+  ]);
+
+  const withdrawBalanceLabel = `In vault: ${trimDisplayAmount(String(primaryBalance), 4)}`;
+
+  const maxDepositHuman = useMemo(() => {
+    if (status !== "connected" || !walletVault.canWalletDeposit || walletVault.walletTokenBalance == null) {
+      return "";
+    }
+    return trimDisplayAmount(formatUnits(walletVault.walletTokenBalance, decimals), 12);
+  }, [decimals, status, walletVault.canWalletDeposit, walletVault.walletTokenBalance]);
+
+  const setMaxAmount = () => {
+    if (tab === "withdraw") {
+      setAmount(trimDisplayAmount(String(primaryBalance), 12));
+      return;
+    }
+    if (status === "connected" && walletVault.canWalletDeposit && maxDepositHuman) {
+      setAmount(maxDepositHuman);
+      return;
+    }
+    setAmount(String(primaryBalance));
+  };
+
+  const pctAmount = (p: number) => {
+    if (tab === "withdraw") {
+      setAmount(trimDisplayAmount(String((primaryBalance * p) / 100), 12));
+      return;
+    }
+    if (status === "connected" && walletVault.walletTokenBalance != null && walletVault.walletTokenBalance > 0n) {
+      const slice = (walletVault.walletTokenBalance * BigInt(p)) / 100n;
+      setAmount(trimDisplayAmount(formatUnits(slice, decimals), 12));
+      return;
+    }
+    setAmount(((selected.balance * p) / 100).toString());
+  };
+
   const chainId = chainConfig?.chainId ?? portfolio?.chainId ?? 8453;
+
+  const confirmDescription =
+    status === "connected"
+      ? `Submit ${tab} of ${amount || "0"} ${selected.symbol} from your wallet on Base (two steps if an approval is needed).`
+      : `Submit ${tab} of ${amount || "0"} ${selected.symbol} via the API signer on Base.`;
+
+  const walletWrongChain = status === "connected" && walletVault.wrongChain;
+  const depositBlocked =
+    status === "connected" && tab === "deposit" && !walletVault.canWalletDeposit;
 
   return (
     <div className="space-y-6">
@@ -82,11 +173,25 @@ export const VaultPage = () => {
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
         title={tab === "deposit" ? "Confirm deposit" : "Confirm withdraw"}
-        description={`Submit ${tab} of ${amount || "0"} ${selected.symbol} via server-signed transaction on Base.`}
+        description={confirmDescription}
         confirmLabel="Sign & send"
         isLoading={pending}
-        onConfirm={executeTab}
+        onConfirm={() => {
+          void executeTab();
+        }}
       />
+
+      {status === "connected" && walletVault.nativeVault && tab === "deposit" && (
+        <Alert className="rounded-xl border-amber-500/30 bg-amber-500/5">
+          <Info className="h-4 w-4 text-amber-600" />
+          <AlertTitle className="text-sm">Native or unset vault asset</AlertTitle>
+          <AlertDescription className="text-xs text-muted-foreground leading-relaxed">
+            Wallet deposits use ERC-20 <span className="font-mono text-foreground/90">approve</span> then{" "}
+            <span className="font-mono text-foreground/90">deposit</span>. Set <span className="font-mono">ASSET_TOKEN</span>{" "}
+            in the API environment (and redeploy / restart) so <span className="font-mono">/api/config</span> returns your USDC address. Withdrawals still work from your connected wallet when you have vault balance.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <VerifyOnChainStrip
         chainId={chainId}
@@ -108,10 +213,13 @@ export const VaultPage = () => {
           <h1 className="font-display text-2xl sm:text-3xl font-semibold tracking-tight">Member Vault</h1>
           <p className="text-muted-foreground text-sm mt-1">Deposit auto-allocates into DAO-governed strategies. Withdraw anytime.</p>
         </div>
-        <div className="flex items-center gap-2 glass rounded-xl px-4 py-2.5">
-          <div className="text-xs text-muted-foreground">Your blended APY</div>
-          <div className="font-mono-num font-semibold text-lg text-primary">
-            {portfolioLoading ? "…" : `${blendedApy.toFixed(1)}%`}
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <WalletConnectButton />
+          <div className="flex items-center gap-2 glass rounded-xl px-4 py-2.5">
+            <div className="text-xs text-muted-foreground">Your blended APY</div>
+            <div className="font-mono-num font-semibold text-lg text-primary">
+              {portfolioLoading ? "…" : `${blendedApy.toFixed(1)}%`}
+            </div>
           </div>
         </div>
       </header>
@@ -150,15 +258,35 @@ export const VaultPage = () => {
           </div>
 
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="text-xs uppercase tracking-wider text-muted-foreground">Amount</label>
-              <span className="text-xs text-muted-foreground">
-                Balance:{" "}
-                <span className="font-mono-num text-foreground">
-                  {portfolioLoading ? "…" : selected.balance.toLocaleString()} {selected.symbol}
+            <div className="flex flex-col items-end gap-0.5 text-right">
+              <div className="flex items-center justify-between w-full">
+                <label className="text-xs uppercase tracking-wider text-muted-foreground">Amount</label>
+                <span className="text-xs text-muted-foreground max-w-[min(100%,14rem)] leading-snug">
+                  {tab === "withdraw" ? (
+                    <>
+                      <span className="text-muted-foreground">{withdrawBalanceLabel}</span>
+                    </>
+                  ) : depositBalanceLabel ? (
+                    <span className="font-mono-num text-foreground">{depositBalanceLabel}</span>
+                  ) : (
+                    <span>
+                      Vault:{" "}
+                      <span className="font-mono-num text-foreground">
+                        {portfolioLoading ? "…" : selected.balance.toLocaleString()} {selected.symbol}
+                      </span>
+                    </span>
+                  )}
                 </span>
-              </span>
+              </div>
             </div>
+            {walletWrongChain && (
+              <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-amber-500/25 bg-amber-500/5 px-3 py-2 text-xs text-muted-foreground">
+                <span>Switch to chain {walletVault.expectedChainId} to transact.</span>
+                <Button type="button" size="sm" variant="outline" className="rounded-lg h-8" onClick={() => void walletVault.switchToAppChain()}>
+                  Switch network
+                </Button>
+              </div>
+            )}
             <div className="relative">
               <input
                 type="text"
@@ -169,7 +297,7 @@ export const VaultPage = () => {
               />
               <button
                 type="button"
-                onClick={() => setAmount(selected.balance.toString())}
+                onClick={setMaxAmount}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-md hover:bg-primary/20"
               >
                 MAX
@@ -180,7 +308,7 @@ export const VaultPage = () => {
                 <button
                   key={p}
                   type="button"
-                  onClick={() => setAmount(((selected.balance * p) / 100).toString())}
+                  onClick={() => pctAmount(p)}
                   className="flex-1 py-1.5 text-xs rounded-lg border border-border/60 text-muted-foreground hover:text-primary hover:border-primary/30"
                 >
                   {p}%
@@ -207,7 +335,7 @@ export const VaultPage = () => {
           <Button
             size="lg"
             className="w-full rounded-xl bg-gradient-primary text-primary-foreground hover:opacity-90 shadow-glow gap-2 min-h-[48px] h-12 text-base sm:text-sm"
-            disabled={pending || !amount.trim()}
+            disabled={pending || !amount.trim() || walletWrongChain || depositBlocked}
             onClick={() => setConfirmOpen(true)}
           >
             {pending ? <Loader2 className="w-4 h-4 animate-spin" /> : tab === "deposit" ? <Plus className="w-4 h-4" /> : <ArrowDownToLine className="w-4 h-4" />}
@@ -220,10 +348,14 @@ export const VaultPage = () => {
             <div className="flex items-center justify-between mb-5">
               <div>
                 <h3 className="font-display font-semibold text-lg">Your Holdings</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">On-chain vault position (server wallet)</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {status === "connected"
+                    ? "On-chain vault position for your connected wallet"
+                    : "On-chain vault position for the API signer (connect a wallet for yours)"}
+                </p>
               </div>
-              <Button variant="outline" size="sm" className="rounded-xl gap-1" disabled>
-                <Wallet className="w-3.5 h-3.5" /> Custodial signer
+              <Button variant="outline" size="sm" className="rounded-xl gap-1 pointer-events-none opacity-90" tabIndex={-1}>
+                <Wallet className="w-3.5 h-3.5" /> {status === "connected" ? "Your wallet" : "API signer view"}
               </Button>
             </div>
             <div className="space-y-2">

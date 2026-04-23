@@ -22,8 +22,8 @@ import { strategies as staticStrategies } from "@/data/club";
 import {
   mergeStrategiesForUi,
   useAllocateMutation,
+  useConnectedPortfolio,
   useChainConfig,
-  usePortfolio,
 } from "@/hooks/useChainData";
 import { explorerAddressUrl, explorerTxUrl } from "@/lib/api";
 import { disclosureForRegistryIndex } from "@/data/strategyOnchain";
@@ -46,7 +46,7 @@ export const StrategyDetailPage = () => {
   const [strategyIdField, setStrategyIdField] = useState("0");
   const [allocOpen, setAllocOpen] = useState(false);
 
-  const { data: portfolio, isLoading } = usePortfolio();
+  const { data: portfolio, isLoading } = useConnectedPortfolio();
   const { data: chainConfig } = useChainConfig();
   const allocateMut = useAllocateMutation();
 

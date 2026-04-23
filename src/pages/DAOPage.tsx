@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TransactionConfirmDialog } from "@/components/TransactionConfirmDialog";
 import { cn } from "@/lib/utils";
-import { usePortfolio, useProposals, useVoteMutation } from "@/hooks/useChainData";
+import { useConnectedPortfolio, useProposals, useVoteMutation } from "@/hooks/useChainData";
 
 const categoryColor = {
   "Real Estate": "border-gold/30 text-gold bg-gold/5",
@@ -17,7 +17,7 @@ const categoryColor = {
 
 export const DAOPage = () => {
   const { data: proposals, isLoading } = useProposals();
-  const { data: portfolio } = usePortfolio();
+  const { data: portfolio } = useConnectedPortfolio();
   const voteMut = useVoteMutation();
   const [confirm, setConfirm] = useState<{
     proposalId: string;

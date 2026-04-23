@@ -25,10 +25,11 @@ import {
   qk,
   useChainConfig,
   useClaimYieldMutation,
-  usePortfolio,
+  useConnectedPortfolio,
   useProposals,
   useTreasury,
 } from "@/hooks/useChainData";
+import { useMemberVaultWallet } from "@/hooks/useMemberVaultWallet";
 import { useRecordReferral } from "@/hooks/useReferral";
 import { riskScoreToOutOf10 } from "@/lib/riskDisplay";
 import { chainApi } from "@/lib/api";
@@ -61,10 +62,11 @@ export const Dashboard = () => {
     isLoading: portfolioLoading,
     isError: portfolioError,
     error: portfolioQueryError,
-  } = usePortfolio();
+  } = useConnectedPortfolio();
   const { data: treasury, isLoading: treasuryLoading } = useTreasury();
   const { data: proposalsList, isLoading: proposalsLoading } = useProposals();
   const claimMut = useClaimYieldMutation();
+  const walletVault = useMemberVaultWallet();
 
   const mergedStrategies = useMemo(
     () => mergeStrategiesForUi(portfolio, staticStrategies),
@@ -185,15 +187,44 @@ export const Dashboard = () => {
   ];
 
   return (
-    <div className="space-y-5 sm:space-y-6">
+    <div className="relative isolate">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 -z-10 overflow-hidden rounded-none"
+      >
+        <video
+          className="absolute left-1/2 top-1/2 min-h-full min-w-full -translate-x-1/2 -translate-y-1/2 object-cover opacity-[0.2] sm:opacity-[0.26] motion-reduce:hidden"
+          style={{ width: "auto", height: "auto" }}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+        >
+          <source src="/bgvideo.mp4" type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-background/[0.93] to-background" />
+      </div>
+
+      <div className="relative z-0 space-y-5 sm:space-y-6">
       <TransactionConfirmDialog
         open={claimOpen}
         onOpenChange={setClaimOpen}
         title="Claim yield on-chain"
-        description="This will submit claimYield() from the server wallet to Base. Confirm to continue."
+        description={
+          status === "connected" && walletVault.canUseVaultWallet
+            ? "This will submit claimYield() from your connected wallet on Base."
+            : "This will submit claimYield() from the API signer wallet on Base. Connect your own wallet to claim into your address."
+        }
         confirmLabel="Submit transaction"
-        isLoading={claimMut.isPending}
+        isLoading={claimMut.isPending || walletVault.pending === "claim"}
         onConfirm={() => {
+          if (status === "connected" && walletVault.canUseVaultWallet) {
+            void walletVault.claimYieldFromWallet().then(ok => {
+              if (ok) setClaimOpen(false);
+            });
+            return;
+          }
           claimMut.mutate(undefined, {
             onSettled: () => setClaimOpen(false),
           });
@@ -215,7 +246,7 @@ export const Dashboard = () => {
           estYearlyYield={estYearlyYield}
           portfolioLoading={portfolioLoading}
           onClaimYield={() => setClaimOpen(true)}
-          claimPending={claimMut.isPending}
+          claimPending={claimMut.isPending || walletVault.pending === "claim"}
         />
         <ClubMemberPulse
           totalMembers={treasury?.totalMembers}
@@ -457,6 +488,7 @@ export const Dashboard = () => {
           Auto-allocations, external strategy marketplaces, and PoR oracles are roadmap items — see <Link to="/reserves" className="text-primary hover:underline">reserves</Link> for current disclosures.
         </p>
       </section>
+      </div>
       </div>
     </div>
   );

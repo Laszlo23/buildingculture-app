@@ -141,7 +141,7 @@ sudo nginx -t
 sudo certbot --nginx -d app.buildingculture.capital
 ```
 
-Certbot may adjust the config; keep `root` pointing at `.../app/dist` and `location /api/` proxying to `127.0.0.1:3001` (or your `PORT`).
+Certbot may adjust the config; keep `root` pointing at `.../app/dist`, **`location /api/`**, **`location /users/`**, and **`location /pipeflare/`** proxying to `127.0.0.1:3001` (or your `PORT`) so **`GET /users/premium`** and **`POST /pipeflare/callback`** (Pipeflare webhooks) are reachable on the same Hono process. If you use a dedicated **`api.buildingculture.capital`** vhost, mirror the same proxy blocks there.
 
 ```bash
 sudo systemctl reload nginx
@@ -165,13 +165,24 @@ sudo systemctl reload nginx
 
 ## Villa POC bonding curve (optional)
 
-Deploy `VillaPocBondingCurve` with Hardhat (test on Base Sepolia first):
+The Reserves “Villa” flow is a **single contract**: `VillaPocBondingCurve` (receipt ERC-20 **vEBR** + USDC bonding curve). Deploy it with Hardhat using a funded wallet on the target network.
+
+**Environment (in `.env`, never commit real keys)**
+
+- **`DEPLOY_PRIVATE_KEY`** (recommended) or **`PRIVATE_KEY`**: `0x` + 64 hex characters — the wallet that pays gas and becomes `owner` of the curve (can pause / set params per the Solidity contract).
+- **`ALCHEMY_API_KEY`** or **`RPC_URL`** / **`BASE_MAINNET_RPC_URL`**: so Hardhat can submit transactions to Base Sepolia or Base mainnet.
+- Optional: **`VILLA_POC_BENEFICIARY`** — address that receives USDC from `buy()` (on mainnet you should set this to your treasury or multisig).
+- Optional curve tuning: **`VILLA_POC_USDC`**, **`VILLA_POC_P0_MICRO`**, **`VILLA_POC_ALPHA_MICRO`**, **`VILLA_POC_MAX_SUPPLY_WEI`** (see `scripts/deploy-villa-bonding-curve.cjs`).
+
+**Commands**
 
 ```bash
 npm run compile:contracts
 npm run deploy:villa-poc:sepolia
-# or mainnet (requires real ETH + legal readiness):
+# or mainnet (real ETH on Base + legal readiness):
 # VILLA_POC_BENEFICIARY=0xYourMultisig npm run deploy:villa-poc:mainnet
 ```
 
-Copy printed `VITE_VILLA_BONDING_CURVE_ADDRESS` (and optional `VITE_VILLA_BONDING_USDC_ADDRESS`) into the host `.env` before `npm run build:prod`. The Reserves page shows the buy UI only when the curve address is set.
+On **Base Sepolia**, the script deploys a **mock USDC**, mints test balance to the deployer, then deploys the curve. On **Base mainnet**, it uses canonical Base USDC unless `VILLA_POC_USDC` is set.
+
+Copy the printed **`VITE_VILLA_BONDING_CURVE_ADDRESS`** (and **`VITE_VILLA_BONDING_USDC_ADDRESS`** if shown) into the host `.env` before `npm run build:prod`. The Reserves page shows the buy UI only when the curve address is set. Set **`VITE_CHAIN_ID`** to `84532` or `8453` to match the deployment network.
