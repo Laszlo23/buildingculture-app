@@ -18,6 +18,12 @@ const envSchema = z
   DAO_CONTRACT: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
   STRATEGY_REGISTRY: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
   CHAIN_ID: z.coerce.number().optional().default(8453),
+  /** Used with non-Base CHAIN_ID when building a minimal viem chain (default: `Chain <id>`). */
+  CHAIN_NAME: z.string().min(1).max(64).optional(),
+  /** Native currency symbol for defineChain when CHAIN_ID is not Base / Base Sepolia (default: ETH). */
+  CHAIN_NATIVE_SYMBOL: z.string().min(1).max(12).optional(),
+  /** Block explorer base URL for non-Base chains (optional). */
+  CHAIN_EXPLORER_URL: z.string().url().optional(),
   /** Hono API (default 3001; Vite dev UI is :8080 and proxies here). */
   PORT: z.coerce.number().optional().default(3001),
   /** ERC20 asset used for vault deposit (e.g. USDC on Base) */
@@ -106,15 +112,24 @@ export function getEnv(): Env {
   return cached;
 }
 
-/** Resolved HTTP RPC URL for viem (Alchemy when key is set, else RPC_URL). */
+/**
+ * Resolved HTTP RPC for viem.
+ * - Base / Base Sepolia: Alchemy URL when `ALCHEMY_API_KEY` is set.
+ * - Other `CHAIN_ID`: use `RPC_URL` (Alchemy host is not inferred from CHAIN_ID alone).
+ */
 export function getHttpRpcUrl(): string {
   const e = getEnv();
   const key = e.ALCHEMY_API_KEY?.trim();
-  if (key) {
+  if (key && (e.CHAIN_ID === 8453 || e.CHAIN_ID === 84532)) {
     const host = e.CHAIN_ID === 84532 ? "base-sepolia" : "base-mainnet";
     return `https://${host}.g.alchemy.com/v2/${key}`;
   }
   const url = e.RPC_URL?.trim();
   if (url) return url;
-  throw new Error("No RPC URL configured (RPC_URL or ALCHEMY_API_KEY).");
+  if (key) {
+    throw new Error(
+      "ALCHEMY_API_KEY is set but CHAIN_ID is not Base (8453) or Base Sepolia (84532). Set RPC_URL to your chain’s HTTP RPC, or use CHAIN_ID 8453 / 84532 for Alchemy Base URLs. See deploy/MULTICHAIN.md.",
+    );
+  }
+  throw new Error("No RPC URL configured (RPC_URL, or ALCHEMY_API_KEY for Base / Base Sepolia).");
 }

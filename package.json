@@ -19,6 +19,7 @@
     "compile:contracts": "hardhat compile",
     "deploy:base-sepolia": "hardhat run scripts/deploy-base-sepolia.cjs --network baseSepolia",
     "deploy:base": "hardhat run scripts/deploy-base-sepolia.cjs --network base",
+    "deploy:dao": "hardhat run scripts/deploy-governance-dao.cjs",
     "deploy:learning-nft": "hardhat run scripts/deploy-learning-nft.cjs --network baseSepolia",
     "deploy:learning-nft:mainnet": "hardhat run scripts/deploy-learning-nft.cjs --network base",
     "deploy:villa-poc:sepolia": "hardhat run scripts/deploy-villa-bonding-curve.cjs --network baseSepolia",

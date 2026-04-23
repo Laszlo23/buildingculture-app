@@ -114,6 +114,16 @@ nano .env   # paste production values from your local .env (never commit .env)
 
 **Learning NFT (Academy / vault patron mints)** — Optional but required for on-chain credentials. Set **`LEARNING_NFT_CONTRACT`** to the deployed **`LearningAchievement`** address (must not be `0x0`). If it is missing or zero, `GET /api/config` returns `contracts.learningNft: null` and the UI disables mint buttons. Deploy from a dev machine with repo + keys: **`npm run deploy:learning-nft`** (Base Sepolia) or **`npm run deploy:learning-nft:mainnet`** (Base); the script prints `LEARNING_NFT_CONTRACT=0x…` for `.env`. If the server’s **`PRIVATE_KEY`** wallet is not the contract deployer, grant **`MINTER_ROLE`** to that wallet (the script prints a `cast send … grantRole` example). After editing `.env` on the VPS, **`sudo systemctl restart buildingculture-api`** (or your Docker equivalent).
 
+**GovernanceDAO (redeploy / voting fix)** — Solidity changes require a **new contract address** on-chain; updating the repo alone does not migrate bytecode. Deploy only the DAO:
+
+```bash
+npm run deploy:dao -- --network baseSepolia
+# or: npm run deploy:dao -- --network base
+# optional: GOVERNANCE_INITIAL_OWNER=0x… (defaults to deployer)
+```
+
+Set **`DAO_CONTRACT=`** from the script output, align **`PROPOSAL_IDS`** with real proposal ids on that contract, and restart the API. For **multichain** (several EVMs, separate envs per host, RPC rules), see **`deploy/MULTICHAIN.md`**.
+
 **Persistence** — Community chat and learning quiz completions are stored in **`server/.data/app.db`** (SQLite). Back up that file (and the rest of `server/.data/`) with your app; legacy JSON files are auto-imported into the DB once if the tables are empty.
 
 **Farcaster (optional)** — Set **`NEYNAR_API_KEY`** on the server (same `.env` as the API) to resolve @handles for wallets that are Farcaster custody or verified addresses. The key never goes in the Vite bundle; the UI calls `GET /api/social/farcaster`.

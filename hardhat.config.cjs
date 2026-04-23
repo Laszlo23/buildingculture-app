@@ -57,5 +57,16 @@ module.exports = {
       chainId: 8453,
       gasMultiplier: 1.15,
     },
+    /** Optional — set ARBITRUM_RPC_URL / OPTIMISM_RPC_URL for paid endpoints; `npm run deploy:dao -- --network arbitrumOne` */
+    arbitrumOne: {
+      url: process.env.ARBITRUM_RPC_URL?.trim() || "https://arb1.arbitrum.io/rpc",
+      accounts: deployerPrivateKeys(),
+      chainId: 42161,
+    },
+    optimism: {
+      url: process.env.OPTIMISM_RPC_URL?.trim() || "https://mainnet.optimism.io",
+      accounts: deployerPrivateKeys(),
+      chainId: 10,
+    },
   },
 };
