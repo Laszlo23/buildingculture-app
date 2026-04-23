@@ -17,7 +17,8 @@ fi
 
 get_env_line() {
   # Last match for KEY= (simple KEY=value files; no multiline values).
-  grep -E "^${1}=" "$ENVF" 2>/dev/null | tail -n1 | cut -d= -f2- | sed 's/^[[:space:]]*//;s/[[:space:]]*$//;s/^"//;s/"$//;s/^'"'"'//;s/'"'"'$//'
+  # With pipefail, grep exits 1 when KEY is absent — do not fail the script for optional keys (e.g. DEPLOY_PATH).
+  { grep -E "^${1}=" "$ENVF" 2>/dev/null || true; } | tail -n1 | cut -d= -f2- | sed 's/^[[:space:]]*//;s/[[:space:]]*$//;s/^"//;s/"$//;s/^'"'"'//;s/'"'"'$//'
 }
 
 VPS_IP="$(get_env_line VPS_IP)"
