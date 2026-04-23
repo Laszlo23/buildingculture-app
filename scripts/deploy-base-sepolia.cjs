@@ -7,7 +7,6 @@
  * Mainnet: uses canonical Base USDC (or MAINNET_ASSET_TOKEN). Does not deploy MockERC20.
  * Optional MAINNET_TREASURY_SEED_MICRO — 6-decimal micro-units to transfer from deployer into ClubTreasury (omit to skip).
  */
-const hre = require("hardhat");
 
 const BASE_MAINNET_USDC = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 
@@ -17,9 +16,9 @@ const erc20TransferAbi = [
 ];
 
 /** Bump EIP-1559 fees on Base mainnet to avoid "replacement transaction underpriced" when mempool is busy */
-async function txOpts(chainId, multPercent = 200) {
+async function txOpts(ethers, chainId, multPercent = 200) {
   if (chainId !== 8453) return {};
-  const fee = await hre.ethers.provider.getFeeData();
+  const fee = await ethers.provider.getFeeData();
   const m = BigInt(multPercent);
   const bump = x => (x ? (x * m) / 100n : undefined);
   const o = {
@@ -36,7 +35,10 @@ async function sleep(ms) {
 }
 
 async function main() {
-  const signers = await hre.ethers.getSigners();
+  const { default: hre } = await import("hardhat");
+  const { ethers } = await hre.network.create();
+
+  const signers = await ethers.getSigners();
   if (!signers.length) {
     console.error(
       "No deployer account. Set DEPLOY_PRIVATE_KEY (recommended) or PRIVATE_KEY in .env — 0x + 64 hex chars.",
@@ -45,9 +47,9 @@ async function main() {
     process.exit(1);
   }
   const [deployer] = signers;
-  const net = await hre.ethers.provider.getNetwork();
+  const net = await ethers.provider.getNetwork();
   const chainId = Number(net.chainId);
-  const opts = await txOpts(chainId, 200);
+  const opts = await txOpts(ethers, chainId, 200);
 
   console.log("Deployer:", deployer.address);
   console.log("Chain ID:", chainId);
@@ -61,45 +63,45 @@ async function main() {
     }
     console.log("Mainnet: using existing ERC-20 as vault/treasury asset:", tokenAddr);
   } else {
-    const MockERC20 = await hre.ethers.getContractFactory("MockERC20");
+    const MockERC20 = await ethers.getContractFactory("MockERC20");
     const token = await MockERC20.deploy("Mock USDC", "mUSDC", 6, opts);
     await token.waitForDeployment();
     tokenAddr = await token.getAddress();
     console.log("MockERC20:", tokenAddr);
 
     const mintAmount = 10_000_000n * 10n ** 6n;
-    await (await token.mint(deployer.address, mintAmount, await txOpts(chainId, 200))).wait();
+    await (await token.mint(deployer.address, mintAmount, await txOpts(ethers, chainId, 200))).wait();
     console.log("Minted", mintAmount.toString(), "to deployer");
   }
 
   if (chainId === 8453) await sleep(1500);
 
-  const ClubTreasury = await hre.ethers.getContractFactory("ClubTreasury");
-  const treasury = await ClubTreasury.deploy(tokenAddr, await txOpts(chainId, 200));
+  const ClubTreasury = await ethers.getContractFactory("ClubTreasury");
+  const treasury = await ClubTreasury.deploy(tokenAddr, await txOpts(ethers, chainId, 200));
   await treasury.waitForDeployment();
   const treasuryAddr = await treasury.getAddress();
   console.log("ClubTreasury:", treasuryAddr);
 
   if (chainId === 8453) await sleep(1500);
 
-  const SavingsVault = await hre.ethers.getContractFactory("SavingsVault");
-  const vault = await SavingsVault.deploy(tokenAddr, await txOpts(chainId, 200));
+  const SavingsVault = await ethers.getContractFactory("SavingsVault");
+  const vault = await SavingsVault.deploy(tokenAddr, await txOpts(ethers, chainId, 200));
   await vault.waitForDeployment();
   const vaultAddr = await vault.getAddress();
   console.log("SavingsVault:", vaultAddr);
 
   if (chainId === 8453) await sleep(1500);
 
-  const StrategyRegistry = await hre.ethers.getContractFactory("StrategyRegistry");
-  const registry = await StrategyRegistry.deploy(7, deployer.address, await txOpts(chainId, 200));
+  const StrategyRegistry = await ethers.getContractFactory("StrategyRegistry");
+  const registry = await StrategyRegistry.deploy(7, deployer.address, await txOpts(ethers, chainId, 200));
   await registry.waitForDeployment();
   const registryAddr = await registry.getAddress();
   console.log("StrategyRegistry:", registryAddr);
 
   if (chainId === 8453) await sleep(1500);
 
-  const GovernanceDAO = await hre.ethers.getContractFactory("GovernanceDAO");
-  const dao = await GovernanceDAO.deploy(deployer.address, await txOpts(chainId, 200));
+  const GovernanceDAO = await ethers.getContractFactory("GovernanceDAO");
+  const dao = await GovernanceDAO.deploy(deployer.address, await txOpts(ethers, chainId, 200));
   await dao.waitForDeployment();
   const daoAddr = await dao.getAddress();
   console.log("GovernanceDAO:", daoAddr);
@@ -108,14 +110,14 @@ async function main() {
 
   if (chainId === 84532) {
     const treasuryFund = 100_000n * 10n ** 6n;
-    const token = await hre.ethers.getContractAt("MockERC20", tokenAddr, deployer);
-    await (await token.transfer(treasuryAddr, treasuryFund, await txOpts(chainId, 200))).wait();
+    const token = await ethers.getContractAt("MockERC20", tokenAddr, deployer);
+    await (await token.transfer(treasuryAddr, treasuryFund, await txOpts(ethers, chainId, 200))).wait();
     console.log("Funded treasury with", treasuryFund.toString(), "(mock USDC)");
   } else if (chainId === 8453) {
     const seedRaw = process.env.MAINNET_TREASURY_SEED_MICRO?.trim();
     if (seedRaw) {
       const treasuryFund = BigInt(seedRaw);
-      const token = await hre.ethers.getContractAt(erc20TransferAbi, tokenAddr, deployer);
+      const token = await ethers.getContractAt(erc20TransferAbi, tokenAddr, deployer);
       const bal = await token.balanceOf(deployer.address);
       if (bal < treasuryFund) {
         console.warn(
@@ -125,7 +127,7 @@ async function main() {
           treasuryFund.toString(),
         );
       } else {
-        await (await token.transfer(treasuryAddr, treasuryFund, await txOpts(chainId, 200))).wait();
+        await (await token.transfer(treasuryAddr, treasuryFund, await txOpts(ethers, chainId, 200))).wait();
         console.log("Funded treasury with (micro USDC):", treasuryFund.toString());
       }
     } else {
@@ -139,13 +141,13 @@ async function main() {
   for (let i = 0; i < 7; i++) {
     if (chainId === 8453) await sleep(2000);
     const tvl = BigInt(1_000_000 + i * 100_000) * oneM;
-    await (await registry.setStrategyTvl(i, tvl, await txOpts(chainId, 220))).wait();
+    await (await registry.setStrategyTvl(i, tvl, await txOpts(ethers, chainId, 220))).wait();
   }
   if (chainId === 8453) await sleep(4000);
-  await (await registry.allocate(0, 2800, await txOpts(chainId, 280))).wait();
+  await (await registry.allocate(0, 2800, await txOpts(ethers, chainId, 280))).wait();
 
   if (chainId === 8453) await sleep(2000);
-  await (await dao.setVotingPower(deployer.address, hre.ethers.parseEther("1"), await txOpts(chainId, 250))).wait();
+  await (await dao.setVotingPower(deployer.address, ethers.parseEther("1"), await txOpts(ethers, chainId, 250))).wait();
   console.log("DAO voting power set for deployer");
 
   const rpcHint =

@@ -4,7 +4,6 @@
  * Base Sepolia: npx hardhat run scripts/deploy-learning-nft.cjs --network baseSepolia
  * Base mainnet: npx hardhat run scripts/deploy-learning-nft.cjs --network base
  */
-const hre = require("hardhat");
 
 /**
  * Default artwork for all achievement types (matches app `OSC_LEARNING_NFT_IMAGE_URL`).
@@ -38,12 +37,15 @@ const URIS = [
 ];
 
 async function main() {
-  const [deployer] = await hre.ethers.getSigners();
-  const net = await hre.ethers.provider.getNetwork();
+  const { default: hre } = await import("hardhat");
+  const { ethers } = await hre.network.create();
+
+  const [deployer] = await ethers.getSigners();
+  const net = await ethers.provider.getNetwork();
   console.log("Deployer:", deployer.address);
   console.log("Chain ID:", Number(net.chainId));
 
-  const Factory = await hre.ethers.getContractFactory("LearningAchievement");
+  const Factory = await ethers.getContractFactory("LearningAchievement");
   const nft = await Factory.deploy(
     deployer.address,
     "Onchain Savings Learning",
@@ -59,7 +61,7 @@ async function main() {
   console.log("\nAdd to .env:");
   console.log(`LEARNING_NFT_CONTRACT=${addr}`);
   /** OpenZeppelin AccessControl `MINTER_ROLE` — avoid `nft.MINTER_ROLE()` eth_call (some RPCs return empty right after deploy). */
-  const minterRole = hre.ethers.keccak256(hre.ethers.toUtf8Bytes("MINTER_ROLE"));
+  const minterRole = ethers.keccak256(ethers.toUtf8Bytes("MINTER_ROLE"));
   console.log("Grant MINTER_ROLE to server hot wallet if different from deployer:");
   console.log(`  cast send ${addr} "grantRole(bytes32,address)" ${minterRole} <SERVER_ADDRESS>`);
 }

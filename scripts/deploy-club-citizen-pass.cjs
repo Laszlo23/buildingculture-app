@@ -9,7 +9,6 @@
  * Base Sepolia: npx hardhat run scripts/deploy-club-citizen-pass.cjs --network baseSepolia
  * Base mainnet: npx hardhat run scripts/deploy-club-citizen-pass.cjs --network base
  */
-const hre = require("hardhat");
 
 const NFT_IMAGE = "https://buildingculture.4everbucket.com/nft.png";
 
@@ -24,14 +23,17 @@ const CITIZEN_URI = metadataDataUri(
 );
 
 async function main() {
-  const [deployer] = await hre.ethers.getSigners();
-  const net = await hre.ethers.provider.getNetwork();
+  const { default: hre } = await import("hardhat");
+  const { ethers } = await hre.network.create();
+
+  const [deployer] = await ethers.getSigners();
+  const net = await ethers.provider.getNetwork();
   const chainId = Number(net.chainId);
   console.log("Deployer:", deployer.address);
   console.log("Chain ID:", chainId);
 
   const treasury =
-    process.env.CITIZEN_PASS_TREASURY?.trim() && hre.ethers.isAddress(process.env.CITIZEN_PASS_TREASURY.trim())
+    process.env.CITIZEN_PASS_TREASURY?.trim() && ethers.isAddress(process.env.CITIZEN_PASS_TREASURY.trim())
       ? process.env.CITIZEN_PASS_TREASURY.trim()
       : deployer.address;
 
@@ -39,16 +41,16 @@ async function main() {
   if (process.env.CITIZEN_PRICE_WEI?.trim()) {
     defaultPriceWei = BigInt(process.env.CITIZEN_PRICE_WEI.trim());
   } else if (chainId === 84532) {
-    defaultPriceWei = hre.ethers.parseEther("0.00015");
+    defaultPriceWei = ethers.parseEther("0.00015");
   } else {
-    defaultPriceWei = hre.ethers.parseEther("0.15");
+    defaultPriceWei = ethers.parseEther("0.15");
   }
 
   const maxSupply = process.env.CITIZEN_MAX_SUPPLY?.trim()
     ? BigInt(process.env.CITIZEN_MAX_SUPPLY.trim())
     : 25_000n;
 
-  const Factory = await hre.ethers.getContractFactory("ClubCitizenPass");
+  const Factory = await ethers.getContractFactory("ClubCitizenPass");
   const pass = await Factory.deploy(
     deployer.address,
     treasury,

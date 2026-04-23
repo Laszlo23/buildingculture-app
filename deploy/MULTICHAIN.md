@@ -42,7 +42,7 @@ Paste printed `DAO_CONTRACT=` into `.env`, restart the API, and point the UI’s
 
 ## Hardhat: add a network
 
-`hardhat.config.cjs` includes **`base`**, **`baseSepolia`**, **`arbitrumOne`** (42161), and **`optimism`** (10) for `deploy:dao` and other scripts. Override RPCs with **`ARBITRUM_RPC_URL`** / **`OPTIMISM_RPC_URL`** when you outgrow public endpoints.
+`hardhat.config.ts` includes **`base`**, **`baseSepolia`**, **`arbitrumOne`** (42161), and **`optimism`** (10) for `deploy:dao` and other scripts. Override RPCs with **`ARBITRUM_RPC_URL`** / **`OPTIMISM_RPC_URL`** when you outgrow public endpoints.
 
 ```bash
 npm run deploy:dao -- --network arbitrumOne

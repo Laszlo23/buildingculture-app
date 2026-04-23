@@ -11,13 +11,12 @@
  *   VILLA_POC_ALPHA_MICRO — curve steepness (default 100)
  *   VILLA_POC_MAX_SUPPLY_WEI — max total supply wei (default 100e6 ether)
  */
-const hre = require("hardhat");
 
 const BASE_MAINNET_USDC = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 
-async function txOpts(chainId, multPercent = 200) {
+async function txOpts(ethers, chainId, multPercent = 200) {
   if (chainId !== 8453) return {};
-  const fee = await hre.ethers.provider.getFeeData();
+  const fee = await ethers.provider.getFeeData();
   const m = BigInt(multPercent);
   const bump = x => (x ? (x * m) / 100n : undefined);
   const o = {
@@ -34,7 +33,10 @@ async function sleep(ms) {
 }
 
 async function main() {
-  const signers = await hre.ethers.getSigners();
+  const { default: hre } = await import("hardhat");
+  const { ethers } = await hre.network.create();
+
+  const signers = await ethers.getSigners();
   if (!signers.length) {
     console.error(
       "No deployer account. Set DEPLOY_PRIVATE_KEY (recommended) or PRIVATE_KEY in .env — 0x + 64 hex chars.",
@@ -43,9 +45,9 @@ async function main() {
     process.exit(1);
   }
   const [deployer] = signers;
-  const net = await hre.ethers.provider.getNetwork();
+  const net = await ethers.provider.getNetwork();
   const chainId = Number(net.chainId);
-  const opts = await txOpts(chainId, 200);
+  const opts = await txOpts(ethers, chainId, 200);
 
   console.log("Deployer:", deployer.address);
   console.log("Chain ID:", chainId);
@@ -55,7 +57,7 @@ async function main() {
     usdcAddr = (process.env.VILLA_POC_USDC || BASE_MAINNET_USDC).trim();
     console.log("Using USDC at:", usdcAddr);
   } else {
-    const MockERC20 = await hre.ethers.getContractFactory("MockERC20");
+    const MockERC20 = await ethers.getContractFactory("MockERC20");
     const token = await MockERC20.deploy("Mock USDC", "mUSDC", 6, opts);
     await token.waitForDeployment();
     usdcAddr = await token.getAddress();
@@ -76,9 +78,9 @@ async function main() {
   const alphaMicro = process.env.VILLA_POC_ALPHA_MICRO ? BigInt(process.env.VILLA_POC_ALPHA_MICRO) : 100n;
   const maxSupplyTokens = process.env.VILLA_POC_MAX_SUPPLY_WEI
     ? BigInt(process.env.VILLA_POC_MAX_SUPPLY_WEI)
-    : hre.ethers.parseEther("100000000");
+    : ethers.parseEther("100000000");
 
-  const Factory = await hre.ethers.getContractFactory("VillaPocBondingCurve");
+  const Factory = await ethers.getContractFactory("VillaPocBondingCurve");
   const curve = await Factory.deploy(
     usdcAddr,
     beneficiary,
