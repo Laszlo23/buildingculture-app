@@ -15,8 +15,18 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useWalletInfo } from "@/hooks/useChainData";
+import { useIsFarcasterMiniApp } from "@/hooks/useIsFarcasterMiniApp";
 
 const expectedChainId = Number(import.meta.env.VITE_CHAIN_ID || 8453);
+
+/** Higher = listed first in “Connect wallet”. */
+function connectorSortKey(id: string): number {
+  if (id === "baseAccount") return 50;
+  if (id === "coinbaseWalletSDK") return 40;
+  if (id === "farcaster") return 30;
+  if (id === "injected") return 10;
+  return 20;
+}
 
 function targetChain() {
   return expectedChainId === 84532 ? baseSepolia : base;
@@ -31,16 +41,17 @@ const disconnectedPrimaryClass =
 
 export function WalletConnectButton({ disconnectedPrimary = false }: { disconnectedPrimary?: boolean }) {
   const { address, chainId, status } = useConnection();
+  const inFarcasterMiniApp = useIsFarcasterMiniApp();
   const rawConnectors = useConnectors();
   const connectors = useMemo(() => {
-    const list = [...rawConnectors];
-    list.sort((a, b) => {
-      if (a.id === "farcaster") return -1;
-      if (b.id === "farcaster") return 1;
-      return 0;
-    });
+    let list = [...rawConnectors];
+    // Farcaster connector only works inside a Mini App host; hide it elsewhere to avoid dead “Connect” clicks.
+    if (inFarcasterMiniApp !== true) {
+      list = list.filter(c => c.id !== "farcaster");
+    }
+    list.sort((a, b) => connectorSortKey(b.id) - connectorSortKey(a.id));
     return list;
-  }, [rawConnectors]);
+  }, [rawConnectors, inFarcasterMiniApp]);
   const { connectAsync, isPending: isConnecting } = useConnect();
   const { disconnect } = useDisconnect();
   const { switchChain, isPending: isSwitching } = useSwitchChain();

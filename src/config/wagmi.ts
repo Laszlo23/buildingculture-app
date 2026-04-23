@@ -1,9 +1,11 @@
 import { createConfig, http } from "wagmi";
 import { arbitrum, base, baseSepolia, optimism } from "wagmi/chains";
 import { farcasterMiniApp } from "@farcaster/miniapp-wagmi-connector";
-import { injected } from "wagmi/connectors";
+import { baseAccount, coinbaseWallet, injected } from "wagmi/connectors";
 
 const alchemyKey = (import.meta.env.VITE_ALCHEMY_API_KEY as string | undefined)?.trim() ?? "";
+
+const walletAppName = "Onchain Savings Club";
 
 function transport(chainId: number) {
   if (!alchemyKey) return http();
@@ -16,10 +18,18 @@ function transport(chainId: number) {
 export const wagmiConfig = createConfig({
   chains: [base, baseSepolia, arbitrum, optimism],
   /**
-   * Farcaster first: inside Warpcast / Farcaster Mini Apps the host wallet uses
-   * the Mini App connector; injected covers normal browsers and extension wallets.
+   * Order: Mini App host wallet → Base app embedded account → Coinbase Wallet SDK → browser injection.
+   * Base app in-app browser needs `baseAccount()` (`@base-org/account`), not generic `injected()` alone.
    */
-  connectors: [farcasterMiniApp(), injected({ shimDisconnect: false })],
+  connectors: [
+    farcasterMiniApp(),
+    baseAccount(),
+    coinbaseWallet({
+      appName: walletAppName,
+      preference: "all",
+    }),
+    injected({ shimDisconnect: false }),
+  ],
   transports: {
     [base.id]: transport(base.id),
     [baseSepolia.id]: transport(baseSepolia.id),

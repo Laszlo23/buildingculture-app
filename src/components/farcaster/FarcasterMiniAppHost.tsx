@@ -23,14 +23,15 @@ export function FarcasterMiniAppHost() {
     let cancelled = false;
 
     void (async () => {
-      const inMiniApp = await sdk.isInMiniApp().catch(() => false);
-      if (cancelled) return;
-
+      // Dismiss host splash first — some clients only expose the wallet provider after ready().
       try {
         await sdk.actions.ready();
       } catch {
         /* Outside a Mini App host, ready() may reject — safe to ignore. */
       }
+      if (cancelled) return;
+
+      const inMiniApp = await sdk.isInMiniApp(5000).catch(() => false);
       if (cancelled) return;
 
       if (inMiniApp && status === "disconnected" && !didTryConnect.current) {

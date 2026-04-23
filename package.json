@@ -28,7 +28,9 @@
     "stacks:keeper": "tsx server/stacks/runKeeper.ts"
   },
   "dependencies": {
+    "@base-org/account": "^2.5.4",
     "@baseai/core": "^0.9.43",
+    "@coinbase/wallet-sdk": "^4.3.7",
     "@farcaster/miniapp-sdk": "^0.3.0",
     "@farcaster/miniapp-wagmi-connector": "^2.0.0",
     "@hono/node-server": "^2.0.0",
