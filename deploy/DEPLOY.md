@@ -122,13 +122,23 @@ nano .env   # paste production values from your local .env (never commit .env)
 
 **Telegram — @culturebuildingbot (optional)** — Set **`TELEGRAM_BOT_TOKEN`** (from [@BotFather](https://t.me/BotFather)) on the API server. Set a long random **`TELEGRAM_WEBHOOK_SECRET`**, then register the webhook with Telegram (HTTPS required), for example:
 
+Prefer the repo helper (reads `.env`, generates **`TELEGRAM_WEBHOOK_SECRET`** if missing, calls Telegram):
+
+```bash
+node scripts/set-telegram-webhook.mjs
+```
+
+Optional: **`TELEGRAM_WEBHOOK_BASE_URL`** in `.env` — HTTPS origin where **`/api/*`** is reachable (no path). Default is **`https://app.buildingculture.capital`** when nginx on the app host proxies `/api/` to Hono. Use your real public URL; Telegram must resolve the host (a bare `api.*` subdomain is wrong if DNS does not exist).
+
+Manual equivalent:
+
 ```bash
 curl "https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook" \
-  -d "url=https://api.YOURDOMAIN.com/api/telegram/webhook" \
+  -d "url=https://app.YOURDOMAIN.com/api/telegram/webhook" \
   -d "secret_token=<same as TELEGRAM_WEBHOOK_SECRET>"
 ```
 
-Telegram will send `POST` updates to **`/api/telegram/webhook`** with header **`X-Telegram-Bot-Api-Secret-Token`**. Nginx must proxy `/api/` to Hono (same as the rest of the API). The bot uses the same **Community Builder** BaseAI pipe as the web app: DMs get replies; in groups members can **`/ask …`** or mention **`@culturebuildingbot`**. **`LANGBASE_API_KEY`** must be set for AI text; otherwise the bot sends a short “offline” notice. Optional: **`TELEGRAM_GROUP_INVITE_URL`**, **`TELEGRAM_BOT_USERNAME`**, **`TELEGRAM_SITE_URL`** (defaults are the public BuildingCulture group link, `culturebuildingbot`, and **`CORS_ORIGIN`**).
+Telegram will send `POST` updates to **`/api/telegram/webhook`** with header **`X-Telegram-Bot-Api-Secret-Token`**. Nginx must proxy `/api/` to Hono (same as the rest of the API). The bot uses the same **Community Builder** BaseAI pipe as the web app: DMs get replies; in groups members can **`/ask …`** or mention **`@culturebuildingbot`**. **`LANGBASE_API_KEY`** must be set for AI text; otherwise the bot sends a short “offline” notice. Optional: **`TELEGRAM_GROUP_INVITE_URL`**, **`TELEGRAM_BOT_USERNAME`**, **`TELEGRAM_SITE_URL`** (defaults are the public BuildingCulture group link, `culturebuildingbot`, and **`CORS_ORIGIN`**). After changing `.env`, sync to the server and restart the API so **`TELEGRAM_WEBHOOK_SECRET`** matches.
 
 **CORS** — set:
 
