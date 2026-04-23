@@ -36,11 +36,18 @@ const envSchema = z
     .optional()
     .default("https://api.buildingculture.capital"),
   /** LearningAchievement contract; 0x0 disables mint endpoints */
-  LEARNING_NFT_CONTRACT: z
-    .string()
-    .regex(/^0x[a-fA-F0-9]{40}$/)
-    .optional()
-    .default("0x0000000000000000000000000000000000000000"),
+  LEARNING_NFT_CONTRACT: z.preprocess(
+    (v) => {
+      if (v === undefined || v === null) return undefined;
+      const s = String(v).trim();
+      return s === "" ? undefined : s;
+    },
+    z
+      .string()
+      .regex(/^0x[a-fA-F0-9]{40}$/)
+      .optional()
+      .default("0x0000000000000000000000000000000000000000"),
+  ),
   /** Minimum vault savings (asset decimals) to mint Vault Patron (achievement type 4) */
   VAULT_PATRON_MIN_DEPOSIT: z.coerce.number().optional().default(100),
   /**
