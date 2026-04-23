@@ -75,9 +75,16 @@ import { registerPaperclipHttpAdapterRoutes } from "./routes/paperclipHttpAdapte
 import { registerPipeflareRoutes } from "./routes/pipeflare.js";
 import { registerAiRoutes } from "./routes/ai.js";
 import { registerSocialRoutes } from "./routes/social.js";
+import { registerTelegramRoutes } from "./routes/telegram.js";
 import { initAppDatabase } from "./lib/db.js";
 import { isAiConfigured, isCommunityAgentInChatEnabled } from "./lib/aiEnv.js";
 import { isXApiConfigured } from "./lib/xApiEnv.js";
+import {
+  isTelegramBotConfigured,
+  telegramBotDeepLink,
+  telegramBotUsername,
+  telegramGroupInviteUrl,
+} from "./lib/telegramEnv.js";
 
 initAppDatabase();
 
@@ -118,6 +125,7 @@ app.get("/health", (c) => c.json({ ok: true }));
 registerPipeflareRoutes(app);
 registerPaperclipHttpAdapterRoutes(app);
 registerSocialRoutes(app);
+registerTelegramRoutes(app);
 registerAgentRoutes(app);
 registerAiRoutes(app);
 
@@ -203,6 +211,14 @@ app.get("/api/config", (c) => {
       x: {
         /** X API v2 — server-only: `X_API_BEARER_TOKEN` or consumer `X_API_KEY` + `X_API_SECRET` */
         apiConfigured: isXApiConfigured(),
+      },
+      telegram: {
+        /** Public invite link (defaults to BuildingCulture group). */
+        groupInviteUrl: telegramGroupInviteUrl(),
+        botUsername: telegramBotUsername(),
+        botDeepLink: telegramBotDeepLink(),
+        /** True when `TELEGRAM_BOT_TOKEN` is set (webhook can receive updates). */
+        botTokenConfigured: isTelegramBotConfigured(),
       },
       contracts: {
         vault: env.VAULT_CONTRACT,

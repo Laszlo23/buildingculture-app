@@ -8,6 +8,7 @@ import {
 } from "../lib/pipeflareEnv.js";
 import { paperclipHttpAdapterSecret } from "../lib/paperclipHttpAdapterEnv.js";
 import { isXApiConfigured } from "../lib/xApiEnv.js";
+import { isTelegramBotConfigured } from "../lib/telegramEnv.js";
 
 export type AgentIntegrationStatus = "ready" | "partial" | "not_configured";
 
@@ -102,15 +103,26 @@ export function buildPlatformAgentsPayload(): { agents: PlatformAgentDto[]; meta
     {
       id: "community-builder",
       name: "Community builder",
-      shortGoal: "AI + in-app community; optional Farcaster",
+      shortGoal: "AI + Member Chat + Telegram @culturebuildingbot; optional Farcaster",
       integrationStatus: ai ? (neynar ? "ready" : "partial") : "not_configured",
-      missingConfig: ai ? (neynar ? [] : ["NEYNAR_API_KEY for Farcaster cards"]) : ["LANGBASE_API_KEY for AI pipes"],
+      missingConfig: ai
+        ? neynar
+          ? isTelegramBotConfigured()
+            ? []
+            : ["TELEGRAM_BOT_TOKEN (optional) — enable Telegram webhook for @culturebuildingbot"]
+          : ["NEYNAR_API_KEY for Farcaster cards"]
+        : ["LANGBASE_API_KEY for AI pipes"],
       platformPath: "/community",
       apiHooks: [
         { method: "GET", path: "/api/community/messages", description: "Club chat transcript" },
         { method: "POST", path: "/api/community/messages", description: "Post as connected wallet (validated server-side)" },
         { method: "GET", path: "/api/ai/agents", description: "List AI pipe ids exposed over HTTP" },
         { method: "POST", path: "/api/ai/pipe/community-builder", description: "Community Builder pipe (503 if AI unset)" },
+        {
+          method: "POST",
+          path: "/api/telegram/webhook",
+          description: "Telegram Bot API updates → same Community Builder pipe (setWebhook + TELEGRAM_WEBHOOK_SECRET)",
+        },
         { method: "GET", path: "/api/social/farcaster", description: "Resolve Farcaster profile by wallet" },
       ],
     },

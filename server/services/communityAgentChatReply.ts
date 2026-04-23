@@ -1,15 +1,8 @@
-import { Pipe } from "@baseai/core";
-import communityBuilderPipeFactory from "../../baseai/pipes/community-builder.ts";
 import { isAiConfigured, isCommunityAgentInChatEnabled } from "../lib/aiEnv.js";
+import { runCommunityBuilderPipeUserContent } from "./communityBuilderAi.js";
 import { appendAgentMessage, listMessages } from "./chatStore.js";
 
 let replyChain: Promise<void> = Promise.resolve();
-
-function truncate(s: string, max: number) {
-  const t = s.trim();
-  if (t.length <= max) return t;
-  return `${t.slice(0, max - 1)}…`;
-}
 
 async function runOneCommunityBuilderReply(): Promise<void> {
   if (!isCommunityAgentInChatEnabled() || !isAiConfigured()) return;
@@ -32,18 +25,7 @@ async function runOneCommunityBuilderReply(): Promise<void> {
     `Write ONE short reply as Community Builder: welcoming, a question, or a healthy norm. ` +
     `Max 320 characters. No personalized financial or investment advice. Plain text only.`;
 
-  const config = communityBuilderPipeFactory();
-  const baseMessages = config.messages.map(m => ({
-    role: m.role,
-    content: m.content ?? "",
-  }));
-  const runMessages = [...baseMessages, { role: "user" as const, content: userMessage }];
-
-  const pipe = new Pipe(config);
-  const result = await pipe.run({ messages: runMessages, stream: false });
-  if ("stream" in result) return;
-
-  const text = truncate(result.completion ?? "", 500);
+  const text = await runCommunityBuilderPipeUserContent(userMessage, { maxOutputChars: 500 });
   if (!text) return;
 
   appendAgentMessage(text, "community_builder");

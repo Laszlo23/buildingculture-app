@@ -45,8 +45,9 @@ export const CommunityBuilderPanel = () => {
             <Sparkles className="h-3.5 w-3.5 text-amber-500" aria-hidden />
           </h3>
           <p className="text-[10px] text-muted-foreground leading-snug">
-            Growth and culture — icebreakers, prompts, healthy norms. Not financial advice. Server-side only; same{" "}
-            <code className="text-foreground/80">LANGBASE_API_KEY</code> as Club AI.
+            Growth and culture — icebreakers, prompts, healthy norms. Not financial advice. Same engine as{" "}
+            <code className="text-foreground/80">LANGBASE_API_KEY</code> and Telegram{" "}
+            <code className="text-foreground/80">@culturebuildingbot</code> when the webhook is configured.
           </p>
         </div>
       </div>

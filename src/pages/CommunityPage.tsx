@@ -12,6 +12,7 @@ import { useFarcasterBatchQuery } from "@/hooks/useFarcaster";
 import { FarcasterHandlePill } from "@/components/social/FarcasterProfileCard";
 import { ClubAIPanel } from "@/components/community/ClubAIPanel";
 import { CommunityBuilderPanel } from "@/components/community/CommunityBuilderPanel";
+import { TelegramCommunityPanel } from "@/components/community/TelegramCommunityPanel";
 
 const rankColor = (rank: number) =>
   rank === 1 ? "text-gold" : rank === 2 ? "text-muted-foreground" : rank === 3 ? "text-warning" : "text-foreground";
@@ -46,6 +47,8 @@ export const CommunityPage = () => {
         <h1 className="font-display text-3xl font-semibold tracking-tight">Community</h1>
         <p className="text-muted-foreground text-sm mt-1">Leaderboard, discussions and member activity.</p>
       </header>
+
+      <TelegramCommunityPanel />
 
       <ClubAIPanel />
 

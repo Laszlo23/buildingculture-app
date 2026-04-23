@@ -120,6 +120,16 @@ nano .env   # paste production values from your local .env (never commit .env)
 
 **Optional: Club AI (BaseAI + Langbase)** — The Community page can call `POST /api/ai/pipe/building-culture-club` via the same Hono process. It is **not** required to run the app. Merge the variables you need from `.env.baseai.example` into the server’s `.env` (same file as the rest of the API). Set **`LANGBASE_API_KEY`** (server-only; do not add `VITE_*` for AI). Provider keys belong in [Langbase keysets](https://langbase.com/docs/features/keysets) for hosted runs. If `LANGBASE_API_KEY` is missing, the route returns **503** and the rest of the site works. Use `npm run baseai` in development to iterate on the pipe in `baseai/pipes/`.
 
+**Telegram — @culturebuildingbot (optional)** — Set **`TELEGRAM_BOT_TOKEN`** (from [@BotFather](https://t.me/BotFather)) on the API server. Set a long random **`TELEGRAM_WEBHOOK_SECRET`**, then register the webhook with Telegram (HTTPS required), for example:
+
+```bash
+curl "https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook" \
+  -d "url=https://api.YOURDOMAIN.com/api/telegram/webhook" \
+  -d "secret_token=<same as TELEGRAM_WEBHOOK_SECRET>"
+```
+
+Telegram will send `POST` updates to **`/api/telegram/webhook`** with header **`X-Telegram-Bot-Api-Secret-Token`**. Nginx must proxy `/api/` to Hono (same as the rest of the API). The bot uses the same **Community Builder** BaseAI pipe as the web app: DMs get replies; in groups members can **`/ask …`** or mention **`@culturebuildingbot`**. **`LANGBASE_API_KEY`** must be set for AI text; otherwise the bot sends a short “offline” notice. Optional: **`TELEGRAM_GROUP_INVITE_URL`**, **`TELEGRAM_BOT_USERNAME`**, **`TELEGRAM_SITE_URL`** (defaults are the public BuildingCulture group link, `culturebuildingbot`, and **`CORS_ORIGIN`**).
+
 **CORS** — set:
 
 ```env

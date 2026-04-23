@@ -473,6 +473,12 @@ export const chainApi = {
       binance?: { apiKeyConfigured: boolean; restHost: string };
       ai?: { langbaseConfigured: boolean; communityAgentInChat: boolean };
       x?: { apiConfigured: boolean };
+      telegram?: {
+        groupInviteUrl: string;
+        botUsername: string;
+        botDeepLink: string;
+        botTokenConfigured: boolean;
+      };
     }>("/api/config"),
 
   getBinanceKlines: (params: { symbol: string; interval: string; limit?: number }) => {
