@@ -12,8 +12,12 @@ import {
   Landmark,
   UserCircle,
   Menu,
+  BookOpen,
+  Milestone,
+  Library,
 } from "lucide-react";
 import { footerNavLinks, navItems, navSidebarGroups } from "@/data/club";
+import { getBlogTitleForSlug } from "@/content/blog/registry";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
@@ -33,6 +37,9 @@ const iconMap = {
   Gem,
   Landmark,
   UserCircle,
+  BookOpen,
+  Milestone,
+  Library,
 };
 
 function navTitleForPath(pathname: string): string | null {
@@ -43,6 +50,14 @@ function navTitleForPath(pathname: string): string | null {
   if (pathname.startsWith("/investor")) return "Investor profile";
   if (pathname.startsWith("/invite/")) return "Referral";
   if (pathname.startsWith("/academy/")) return "Academy";
+  if (pathname === "/learn") return "Learning hub";
+  if (pathname === "/blog") return "Blog";
+  if (pathname === "/roadmap") return "Platform roadmap";
+  const blogPost = /^\/blog\/([^/]+)$/.exec(pathname);
+  if (blogPost) {
+    const title = getBlogTitleForSlug(blogPost[1]);
+    return title ?? "Blog post";
+  }
   if (
     pathname.startsWith("/strategies/") &&
     pathname !== "/strategies" &&

@@ -181,6 +181,16 @@ export const governanceDaoAbi = [
   },
   {
     type: "function",
+    name: "hasVoted",
+    stateMutability: "view",
+    inputs: [
+      { name: "proposalId", type: "uint256" },
+      { name: "voter", type: "address" },
+    ],
+    outputs: [{ type: "bool" }],
+  },
+  {
+    type: "function",
     name: "setVotingPower",
     stateMutability: "nonpayable",
     inputs: [

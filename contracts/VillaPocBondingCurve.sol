@@ -64,7 +64,7 @@ contract VillaPocBondingCurve is ERC20, Ownable, ReentrancyGuard {
     }
 
     function setBeneficiary(address b) external onlyOwner {
-        if (b == address(0)) revert();
+        if (b == address(0)) revert ZeroAddress();
         beneficiary = b;
         emit BeneficiaryUpdated(b);
     }

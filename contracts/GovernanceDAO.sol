@@ -13,6 +13,8 @@ contract GovernanceDAO is Ownable {
 
     mapping(uint256 => Tally) public proposalVotes;
     mapping(address => uint256) public votingPower;
+    /// @notice Each voter may cast at most one vote per proposal (prevents weight replay).
+    mapping(uint256 proposalId => mapping(address voter => bool)) public hasVoted;
 
     event VoteCast(address indexed voter, uint256 indexed proposalId, uint8 support, uint256 weight);
 
@@ -32,8 +34,11 @@ contract GovernanceDAO is Ownable {
     }
 
     function _castVote(address voter, uint256 proposalId, uint8 support) internal {
+        require(!hasVoted[proposalId][voter], "GovernanceDAO: already voted");
         uint256 w = votingPower[voter];
         require(w > 0, "GovernanceDAO: no voting power");
+
+        hasVoted[proposalId][voter] = true;
 
         Tally storage t = proposalVotes[proposalId];
         if (support == 1) {

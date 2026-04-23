@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { ChevronDown, Loader2, User, Wallet, LineChart } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
@@ -30,7 +31,16 @@ const disconnectedPrimaryClass =
 
 export function WalletConnectButton({ disconnectedPrimary = false }: { disconnectedPrimary?: boolean }) {
   const { address, chainId, status } = useConnection();
-  const connectors = useConnectors();
+  const rawConnectors = useConnectors();
+  const connectors = useMemo(() => {
+    const list = [...rawConnectors];
+    list.sort((a, b) => {
+      if (a.id === "farcaster") return -1;
+      if (b.id === "farcaster") return 1;
+      return 0;
+    });
+    return list;
+  }, [rawConnectors]);
   const { connectAsync, isPending: isConnecting } = useConnect();
   const { disconnect } = useDisconnect();
   const { switchChain, isPending: isSwitching } = useSwitchChain();

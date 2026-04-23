@@ -19,8 +19,16 @@ export const navSidebarGroups: { label: string; items: NavItem[] }[] = [
   {
     label: "Learn & govern",
     items: [
+      { name: "Learning hub", path: "/learn", icon: "Library" },
       { name: "Academy", path: "/academy", icon: "GraduationCap" },
       { name: "DAO", path: "/dao", icon: "Vote" },
+    ],
+  },
+  {
+    label: "Insights",
+    items: [
+      { name: "Blog", path: "/blog", icon: "BookOpen" },
+      { name: "Platform roadmap", path: "/roadmap", icon: "Milestone" },
     ],
   },
   {
@@ -38,6 +46,7 @@ export const navItems: NavItem[] = navSidebarGroups.flatMap(g => g.items);
 
 /** Secondary links — footer (still reachable, not in main rail). */
 export const footerNavLinks: { name: string; path: string }[] = [
+  { name: "Learning hub", path: "/learn" },
   { name: "Leaderboard", path: "/leaderboard" },
   { name: "Invites", path: "/invites" },
   { name: "Transparency", path: "/transparency" },

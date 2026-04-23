@@ -33,6 +33,9 @@ server {
     include /etc/letsencrypt/options-ssl-nginx.conf;
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
+    # Optional: allow embedding only in Farcaster / Warpcast (omit if you use a global CSP elsewhere).
+    # add_header Content-Security-Policy "frame-ancestors 'self' https://warpcast.com https://*.warpcast.com https://farcaster.xyz https://*.farcaster.xyz" always;
+
     root /var/www/buildingculture/app/dist;
     index index.html;
 

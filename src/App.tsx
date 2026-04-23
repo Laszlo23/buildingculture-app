@@ -14,6 +14,7 @@ import { StrategyDetailPage } from "./pages/StrategyDetailPage";
 import { ReservesPage } from "./pages/ReservesPage";
 import { PortfolioPage } from "./pages/PortfolioPage";
 import { AcademyPage } from "./pages/AcademyPage";
+import { LearnPage } from "./pages/LearnPage";
 import { DAOPage } from "./pages/DAOPage";
 import { CommunityPage } from "./pages/CommunityPage";
 import { MembershipPage } from "./pages/MembershipPage";
@@ -28,6 +29,10 @@ import { InvitePage } from "./pages/InvitePage";
 import { TeamPage } from "./pages/TeamPage";
 import { StrategyBacktestRoadmapPage } from "./pages/StrategyBacktestRoadmapPage";
 import { AgentsPage } from "./pages/AgentsPage";
+import { BlogIndexPage } from "./pages/BlogIndexPage";
+import { BlogPostPage } from "./pages/BlogPostPage";
+import { PlatformRoadmapPage } from "./pages/PlatformRoadmapPage";
+import { FarcasterMiniAppHost } from "./components/farcaster/FarcasterMiniAppHost";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +41,7 @@ const wrap = (node: React.ReactNode) => <AppShell>{node}</AppShell>;
 const App = () => (
   <WagmiProvider config={wagmiConfig}>
     <QueryClientProvider client={queryClient}>
+      <FarcasterMiniAppHost />
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -50,8 +56,12 @@ const App = () => (
             <Route path="/portfolio" element={wrap(<PortfolioPage />)} />
             <Route path="/transparency" element={wrap(<TransparencyPage />)} />
             <Route path="/contracts" element={wrap(<ContractsPage />)} />
+            <Route path="/learn" element={wrap(<LearnPage />)} />
             <Route path="/academy" element={wrap(<AcademyPage />)} />
             <Route path="/academy/:routeId" element={wrap(<LearningRoutePage />)} />
+            <Route path="/blog" element={wrap(<BlogIndexPage />)} />
+            <Route path="/blog/:slug" element={wrap(<BlogPostPage />)} />
+            <Route path="/roadmap" element={wrap(<PlatformRoadmapPage />)} />
             <Route path="/dao" element={wrap(<DAOPage />)} />
             <Route path="/agents" element={wrap(<AgentsPage />)} />
             <Route path="/community" element={wrap(<CommunityPage />)} />

@@ -91,7 +91,12 @@ export const AcademyPage = () => {
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-semibold tracking-tight">Web3 Academy</h1>
-          <p className="text-muted-foreground text-sm mt-1">Learn, earn XP, unlock advanced strategies.</p>
+          <p className="text-muted-foreground text-sm mt-1">
+            Learn, earn XP, unlock advanced strategies.{" "}
+            <Link to="/learn" className="text-primary font-medium hover:underline underline-offset-4">
+              All learning paths on the platform →
+            </Link>
+          </p>
         </div>
         <div
           className={cn(

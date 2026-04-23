@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useConnection } from "wagmi";
-import { ArrowRight, Vote, ChevronRight, Loader2, Info } from "lucide-react";
+import { ArrowRight, Vote, ChevronRight, Loader2, Info, Library } from "lucide-react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { LevelProgress } from "@/components/LevelProgress";
 import { TransactionConfirmDialog } from "@/components/TransactionConfirmDialog";
@@ -257,6 +257,31 @@ export const Dashboard = () => {
         chainId={chainConfig?.chainId ?? portfolio?.chainId ?? 8453}
         vaultAddress={chainConfig?.contracts?.vault ?? null}
       />
+
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.02 }}
+        className="rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/[0.08] via-card/60 to-gold/[0.06] px-4 py-3 sm:px-5 sm:py-3.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+      >
+        <div className="flex items-start gap-3 min-w-0">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-primary/30 bg-primary/10 text-primary">
+            <Library className="h-4 w-4" aria-hidden />
+          </div>
+          <div className="min-w-0">
+            <p className="font-display text-sm font-semibold text-foreground">Never too old to learn something new</p>
+            <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+              Academy modules, story journeys, blog, agents, and on-chain reading — pick your pace.
+            </p>
+          </div>
+        </div>
+        <Button size="sm" className="rounded-xl shrink-0 w-full sm:w-auto" asChild>
+          <Link to="/learn">
+            Learning hub <ArrowRight className="w-3.5 h-3.5 ml-1" />
+          </Link>
+        </Button>
+      </motion.div>
+
       <ProtocolCoreFrame>
         <VaultHeroPanel
           embeddedInFrame
