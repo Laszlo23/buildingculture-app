@@ -356,7 +356,10 @@ export function LearningRoutePage() {
           )}
           {elig && !elig.learningNftConfigured && (
             <p className="text-xs text-amber-600 dark:text-amber-400">
-              Server has no LEARNING_NFT_CONTRACT configured — minting is disabled until deployment.
+              The API has no learning NFT contract set (<code className="text-[0.7rem]">LEARNING_NFT_CONTRACT</code> missing or zero). Deploy{" "}
+              <code className="text-[0.7rem]">LearningAchievement</code>, put the address in the server <code className="text-[0.7rem]">.env</code>, grant{" "}
+              <code className="text-[0.7rem]">MINTER_ROLE</code> to the server wallet if needed, then restart the API. See{" "}
+              <code className="text-[0.7rem]">deploy/DEPLOY.md</code> and <code className="text-[0.7rem]">npm run deploy:learning-nft</code>.
             </p>
           )}
         </section>

@@ -112,6 +112,8 @@ nano .env   # paste production values from your local .env (never commit .env)
 
 **Required for the API** (see `server/lib/env.ts`): `PRIVATE_KEY`, contract addresses, `ALCHEMY_API_KEY` or `RPC_URL`, etc.
 
+**Learning NFT (Academy / vault patron mints)** — Optional but required for on-chain credentials. Set **`LEARNING_NFT_CONTRACT`** to the deployed **`LearningAchievement`** address (must not be `0x0`). If it is missing or zero, `GET /api/config` returns `contracts.learningNft: null` and the UI disables mint buttons. Deploy from a dev machine with repo + keys: **`npm run deploy:learning-nft`** (Base Sepolia) or **`npm run deploy:learning-nft:mainnet`** (Base); the script prints `LEARNING_NFT_CONTRACT=0x…` for `.env`. If the server’s **`PRIVATE_KEY`** wallet is not the contract deployer, grant **`MINTER_ROLE`** to that wallet (the script prints a `cast send … grantRole` example). After editing `.env` on the VPS, **`sudo systemctl restart buildingculture-api`** (or your Docker equivalent).
+
 **Persistence** — Community chat and learning quiz completions are stored in **`server/.data/app.db`** (SQLite). Back up that file (and the rest of `server/.data/`) with your app; legacy JSON files are auto-imported into the DB once if the tables are empty.
 
 **Farcaster (optional)** — Set **`NEYNAR_API_KEY`** on the server (same `.env` as the API) to resolve @handles for wallets that are Farcaster custody or verified addresses. The key never goes in the Vite bundle; the UI calls `GET /api/social/farcaster`.

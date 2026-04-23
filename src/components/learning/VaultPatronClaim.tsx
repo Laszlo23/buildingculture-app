@@ -58,7 +58,7 @@ export function VaultPatronClaim({ className }: { className?: string }) {
   if (!vp || !elig?.learningNftConfigured) {
     return (
       <p className={cn("text-xs text-muted-foreground", className)}>
-        NFT contract not configured on the server — patron mint is unavailable.
+        Set <code className="text-[0.65rem]">LEARNING_NFT_CONTRACT</code> on the API server (deployed <code className="text-[0.65rem]">LearningAchievement</code>), then restart the API. See <code className="text-[0.65rem]">deploy/DEPLOY.md</code>.
       </p>
     );
   }
