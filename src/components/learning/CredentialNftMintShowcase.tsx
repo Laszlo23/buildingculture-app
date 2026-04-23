@@ -86,8 +86,8 @@ export type CredentialNftMintShowcaseProps = {
 };
 
 /**
- * Premium two-column NFT / credential showcase for the Academy mint flow.
- * Hero art defaults to club founders visual in `public/nft/`.
+ * Premium two-column credential showcase for the Academy mint flow.
+ * Omit `heroImageSrc` for a text-and-gradient hero (no artwork in `public/`).
  */
 export function CredentialNftMintShowcase({
   phase,
@@ -98,7 +98,7 @@ export function CredentialNftMintShowcase({
   ownerAddress,
   completedAtIso,
   description,
-  heroImageSrc = "/nft/credential-hero-founders.png",
+  heroImageSrc,
   className,
 }: CredentialNftMintShowcaseProps) {
   const a = accentMeta[accent];
@@ -129,12 +129,34 @@ export function CredentialNftMintShowcase({
       <div className="relative grid grid-cols-1 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] gap-0 lg:min-h-[420px]">
         {/* Visual column */}
         <div className="relative min-h-[280px] lg:min-h-full border-b border-white/[0.06] lg:border-b-0 lg:border-r lg:border-white/[0.06]">
-          <img
-            src={heroImageSrc}
-            alt=""
-            className="absolute inset-0 h-full w-full object-cover object-center opacity-95"
-            decoding="async"
-          />
+          {heroImageSrc ? (
+            <img
+              src={heroImageSrc}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover object-center opacity-95"
+              decoding="async"
+            />
+          ) : (
+            <div className="absolute inset-0 overflow-hidden" aria-hidden>
+              <div
+                className="absolute inset-0 opacity-90"
+                style={{
+                  backgroundImage: `radial-gradient(ellipse 70% 55% at 30% 20%, hsl(var(--primary) / 0.28), transparent 60%),
+                    radial-gradient(ellipse 50% 45% at 80% 80%, hsl(270 60% 45% / 0.2), transparent 55%),
+                    linear-gradient(165deg, hsl(222 42% 12%) 0%, hsl(222 45% 6%) 45%, hsl(220 50% 4%) 100%)`,
+                }}
+              />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span
+                  className="font-display font-bold uppercase tracking-tighter text-white/[0.07] select-none"
+                  style={{ fontSize: "clamp(3.5rem, 16vw, 9rem)" }}
+                  aria-hidden
+                >
+                  {credentialName.trim().slice(0, 1) || "·"}
+                </span>
+              </div>
+            </div>
+          )}
           <div
             className="absolute inset-0 bg-gradient-to-t from-[hsl(222_47%_5%/0.92)] via-[hsl(222_40%_8%/0.35)] to-transparent"
             aria-hidden

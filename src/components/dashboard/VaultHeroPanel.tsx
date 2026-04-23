@@ -7,6 +7,7 @@ import { userStats } from "@/data/club";
 import heroMesh from "@/assets/hero-mesh.jpg";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { SITE_TAGLINE } from "@/lib/siteTagline";
 
 const fmtMoney = (n: number) =>
   "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -64,8 +65,8 @@ export function VaultHeroPanel({
         </div>
 
         <h1 className="text-center font-display text-2xl sm:text-3xl font-semibold tracking-tight">Your vault</h1>
-        <p className="text-center text-sm text-muted-foreground mt-2 max-w-md mx-auto leading-relaxed">
-          Grow your wealth together on-chain.
+        <p className="text-center text-sm text-gradient-primary font-medium mt-2 max-w-md mx-auto leading-relaxed">
+          {SITE_TAGLINE}
         </p>
         <p className="text-center text-xs text-muted-foreground/80 mt-1.5 max-w-lg mx-auto">
           Deposit. Earn yield. Automatically diversified.

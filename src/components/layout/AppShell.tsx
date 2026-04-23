@@ -11,6 +11,7 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useChainConfig } from "@/hooks/useChainData";
 import { WalletConnectButton } from "@/components/wallet/WalletConnectButton";
 import { GmMicroFinancingFab } from "@/components/tips/GmMicroFinancingFab";
+import { SITE_TAGLINE } from "@/lib/siteTagline";
 
 const iconMap = {
   LayoutDashboard,
@@ -64,6 +65,9 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
               decoding="async"
             />
           </Link>
+          <p className="mt-2.5 text-[10px] font-medium uppercase tracking-[0.12em] text-primary/80 leading-snug">
+            {SITE_TAGLINE}
+          </p>
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
@@ -127,9 +131,14 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
               >
                 <Menu className="h-5 w-5" />
               </Button>
-              <h1 className="font-display text-base sm:text-lg font-semibold tracking-tight truncate min-w-0">
-                {pageTitle ?? "Dashboard"}
-              </h1>
+              <div className="min-w-0 flex flex-col sm:flex-row sm:items-baseline sm:gap-2">
+                <h1 className="font-display text-base sm:text-lg font-semibold tracking-tight truncate min-w-0">
+                  {pageTitle ?? "Dashboard"}
+                </h1>
+                <span className="hidden sm:block text-[10px] font-medium uppercase tracking-[0.1em] text-muted-foreground truncate">
+                  {SITE_TAGLINE}
+                </span>
+              </div>
               <Badge
                 variant="outline"
                 className="hidden sm:inline-flex shrink-0 border-primary/30 text-primary bg-primary/5"
@@ -177,7 +186,10 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
                     decoding="async"
                   />
                 </Link>
-                <p className="mt-3 text-xs text-muted-foreground">
+                <p className="mt-2 text-[10px] font-medium uppercase tracking-[0.12em] text-primary/80">
+                  {SITE_TAGLINE}
+                </p>
+                <p className="mt-2 text-xs text-muted-foreground">
                   {chainCfg?.chainName ?? "Base"} · {pageTitle ?? "Dashboard"}
                 </p>
               </div>
