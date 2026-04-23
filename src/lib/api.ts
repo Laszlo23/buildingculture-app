@@ -130,6 +130,8 @@ export type PortfolioDto = {
     providers: readonly string[];
     note: string;
   };
+  /** Server-side hints when reads or config may not match user expectations (e.g. custom USDC, RPC). */
+  warnings?: string[];
 };
 
 export type TreasuryDto = {

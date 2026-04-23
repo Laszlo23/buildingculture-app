@@ -3,12 +3,13 @@ import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useConnection } from "wagmi";
-import { ArrowRight, Vote, ChevronRight, Loader2 } from "lucide-react";
+import { ArrowRight, Vote, ChevronRight, Loader2, Info } from "lucide-react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { LevelProgress } from "@/components/LevelProgress";
 import { TransactionConfirmDialog } from "@/components/TransactionConfirmDialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { VaultBeginnerOnboarding } from "@/components/dashboard/VaultBeginnerOnboarding";
 import { StrategyPerformanceTable } from "@/components/dashboard/StrategyPerformanceTable";
 import { ContractAddressesBlock } from "@/components/dashboard/ContractAddressesBlock";
@@ -28,6 +29,7 @@ import {
   useConnectedPortfolio,
   useProposals,
   useTreasury,
+  useWalletInfo,
 } from "@/hooks/useChainData";
 import { useMemberVaultWallet } from "@/hooks/useMemberVaultWallet";
 import { useRecordReferral } from "@/hooks/useReferral";
@@ -67,6 +69,7 @@ export const Dashboard = () => {
   const { data: proposalsList, isLoading: proposalsLoading } = useProposals();
   const claimMut = useClaimYieldMutation();
   const walletVault = useMemberVaultWallet();
+  const { data: signerWallet } = useWalletInfo();
 
   const mergedStrategies = useMemo(
     () => mergeStrategiesForUi(portfolio, staticStrategies),
@@ -232,10 +235,29 @@ export const Dashboard = () => {
       />
 
       <h2 className="sr-only">Your vault and protocol</h2>
+
+      {!walletConnected && signerWallet?.address ? (
+        <Alert className="rounded-xl border-border/60 bg-secondary/25">
+          <Info className="h-4 w-4 text-primary" />
+          <AlertTitle className="text-sm">Connect to see your deposits</AlertTitle>
+          <AlertDescription className="text-xs text-muted-foreground leading-relaxed">
+            While disconnected, this page loads <span className="font-mono text-[11px]">GET /api/portfolio</span> without
+            your address, so you see the club API signer&apos;s vault on Base — not your personal wallet. The signer is{" "}
+            <span className="font-mono text-foreground/90">
+              {signerWallet.address.slice(0, 6)}…{signerWallet.address.slice(-4)}
+            </span>
+            . Deposits you confirm without a wallet credit that signer. Connect the same wallet you use for on-chain
+            deposits to load <span className="font-mono text-[11px]">/api/portfolio?address=…</span> for your balance.
+          </AlertDescription>
+        </Alert>
+      ) : null}
+
       <VaultBeginnerOnboarding
         walletConnected={walletConnected}
         savings={savings}
         portfolioLoading={portfolioLoading}
+        chainId={chainConfig?.chainId ?? portfolio?.chainId ?? 8453}
+        vaultAddress={chainConfig?.contracts?.vault ?? null}
       />
       <ProtocolCoreFrame>
         <VaultHeroPanel
@@ -247,6 +269,7 @@ export const Dashboard = () => {
           portfolioLoading={portfolioLoading}
           onClaimYield={() => setClaimOpen(true)}
           claimPending={claimMut.isPending || walletVault.pending === "claim"}
+          portfolioWarnings={portfolio?.warnings}
         />
         <ClubMemberPulse
           totalMembers={treasury?.totalMembers}

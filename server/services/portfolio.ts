@@ -8,6 +8,9 @@ import { fetchRegistryRecentEvents } from "./registryActivity.ts";
 const ZERO = 0n;
 const ZERO_ADDR = "0x0000000000000000000000000000000000000000";
 
+/** Canonical USDC on Base mainnet — deployments using another ERC20 still work but confuse members who bridged “USDC” elsewhere. */
+const BASE_MAINNET_USDC = "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913";
+
 async function safeRead<T>(
   fn: () => Promise<T>,
 ): Promise<{ ok: true; value: T } | { ok: false }> {
@@ -22,8 +25,26 @@ async function safeRead<T>(
 /** Full portfolio read for any wallet (public wealth / leaderboards). */
 export async function fetchPortfolioForAddress(account: `0x${string}`) {
   const publicClient = getPublicClient();
-  const { vault, treasury, strategyRegistry, dao } = contractAddresses();
+  const { vault, treasury, strategyRegistry, dao, assetToken } = contractAddresses();
   const env = getEnv();
+  const warnings: string[] = [];
+
+  const vaultBytecode = await safeRead(() => publicClient.getBytecode({ address: vault }));
+  if (!vaultBytecode.ok || !vaultBytecode.value || vaultBytecode.value === "0x") {
+    warnings.push(
+      "VAULT_CONTRACT has no bytecode on this RPC — double-check VAULT_CONTRACT and CHAIN_ID (portfolio reads may be zero).",
+    );
+  }
+
+  if (
+    env.CHAIN_ID === 8453 &&
+    assetToken.toLowerCase() !== ZERO_ADDR.toLowerCase() &&
+    assetToken.toLowerCase() !== BASE_MAINNET_USDC.toLowerCase()
+  ) {
+    warnings.push(
+      "This vault uses a custom ERC20 asset (see GET /api/config → assetToken), not canonical Base USDC. Only that token’s deposits into this SavingsVault count toward your balance here.",
+    );
+  }
 
   const core = await publicClient.multicall({
     allowFailure: true,
@@ -60,8 +81,25 @@ export async function fetchPortfolioForAddress(account: `0x${string}`) {
   const yieldResult = core[2];
   const treasuryResult = core[3];
 
-  const balanceWei =
+  let balanceWei =
     balanceResult.status === "success" ? (balanceResult.result as bigint) : ZERO;
+  if (balanceResult.status !== "success") {
+    const fb = await safeRead(() =>
+      publicClient.readContract({
+        address: vault,
+        abi: vaultAbi,
+        functionName: "balanceOf",
+        args: [account],
+      }),
+    );
+    if (fb.ok) {
+      balanceWei = fb.value as bigint;
+    } else {
+      warnings.push(
+        "Could not read vault balanceOf (multicall and direct read failed). Check VAULT_CONTRACT, ABI match, and RPC health.",
+      );
+    }
+  }
   const totalAssetsVault =
     totalAssetsVaultResult.status === "success"
       ? (totalAssetsVaultResult.result as bigint)
@@ -204,6 +242,7 @@ export async function fetchPortfolioForAddress(account: `0x${string}`) {
     metricSources,
     registryRecentEvents,
     keeperStack,
+    warnings,
   };
 }
 

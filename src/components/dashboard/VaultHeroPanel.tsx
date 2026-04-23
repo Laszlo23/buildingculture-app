@@ -1,11 +1,12 @@
 import { Link } from "react-router-dom";
-import { Wallet, Loader2, Sparkles, ArrowLeftRight, PiggyBank, Repeat } from "lucide-react";
+import { Wallet, Loader2, Sparkles, ArrowLeftRight, PiggyBank, Repeat, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { userStats } from "@/data/club";
 import heroMesh from "@/assets/hero-mesh.jpg";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 import { SITE_TAGLINE } from "@/lib/siteTagline";
 
@@ -23,6 +24,8 @@ type Props = {
   claimPending: boolean;
   /** Set when nested inside {@link ProtocolCoreFrame} — avoids competing frames/borders. */
   embeddedInFrame?: boolean;
+  /** GET /api/portfolio warnings (custom asset, read failures, etc.). */
+  portfolioWarnings?: string[];
 };
 
 export function VaultHeroPanel({
@@ -34,7 +37,10 @@ export function VaultHeroPanel({
   onClaimYield,
   claimPending,
   embeddedInFrame = false,
+  portfolioWarnings,
 }: Props) {
+  const totalInVault = vaultBalance + yieldEarned;
+
   return (
     <motion.section
       initial={{ opacity: 0, y: 12 }}
@@ -72,11 +78,29 @@ export function VaultHeroPanel({
           Deposit. Earn yield. Automatically diversified.
         </p>
 
+        {portfolioWarnings && portfolioWarnings.length > 0 ? (
+          <Alert className="mt-6 max-w-2xl mx-auto rounded-xl border-amber-500/35 bg-amber-500/5 text-left">
+            <AlertTriangle className="h-4 w-4 text-amber-600" />
+            <AlertTitle className="text-sm">Vault data notice</AlertTitle>
+            <AlertDescription asChild>
+              <ul className="text-xs text-muted-foreground list-disc pl-4 space-y-1.5 leading-relaxed">
+                {portfolioWarnings.map(w => (
+                  <li key={w}>{w}</li>
+                ))}
+              </ul>
+            </AlertDescription>
+          </Alert>
+        ) : null}
+
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto text-center">
           <div className="rounded-2xl bg-secondary/30 border border-border/50 p-4 sm:p-5">
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Vault balance</div>
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Total in vault</div>
             <div className="font-mono-num text-2xl sm:text-3xl font-semibold">
-              {portfolioLoading ? "…" : fmtMoney(vaultBalance)}
+              {portfolioLoading ? "…" : fmtMoney(totalInVault)}
+            </div>
+            <div className="text-[10px] text-muted-foreground mt-1.5 leading-snug">
+              Principal {portfolioLoading ? "…" : fmtMoney(vaultBalance)} · Pending yield{" "}
+              {portfolioLoading ? "…" : fmtMoney(yieldEarned)}
             </div>
           </div>
           <div className="rounded-2xl bg-secondary/30 border border-border/50 p-4 sm:p-5">
@@ -92,10 +116,6 @@ export function VaultHeroPanel({
             </div>
           </div>
         </div>
-
-        <p className="text-center text-[11px] text-muted-foreground mt-4">
-          Lifetime yield: <span className="font-mono-num text-foreground/90">{portfolioLoading ? "…" : fmtMoney(yieldEarned)}</span>
-        </p>
 
         <div className="mt-8 flex flex-col items-center gap-4">
           <Button
