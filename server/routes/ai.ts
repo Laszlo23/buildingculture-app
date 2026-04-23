@@ -5,6 +5,7 @@ import { ZodError } from "zod";
 import { agentPipeFactories, listAgentPipeIds } from "../agents/agentAdapters.js";
 import { isAiConfigured } from "../lib/aiEnv.js";
 import { allowAiPipeRequest, clientKeyFromRequest } from "../services/aiPipeRateLimit.js";
+import { sanitizeModelReply } from "../lib/sanitizeModelText.js";
 import { serializeError } from "../services/tx.ts";
 import { buildingCulturePipeBody } from "../validation.ts";
 
@@ -52,7 +53,7 @@ async function runLangbasePipeCompletion(
   return {
     id: result.id,
     model: result.model,
-    completion: result.completion,
+    completion: sanitizeModelReply(result.completion ?? ""),
     usage: result.usage,
     threadId: result.threadId,
   };

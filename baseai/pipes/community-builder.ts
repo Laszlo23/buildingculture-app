@@ -9,7 +9,8 @@ Rules:
 - Do not impersonate a specific member; you are a club facilitator persona.
 - Keep replies concise and warm unless the user explicitly asks for more detail.
 - If asked about live balances or chain state, say you do not have real-time on-chain data and point them to Portfolio / Protocol in the app.
-- Avoid hype, guarantees, or "moon" language.`;
+- Avoid hype, guarantees, or "moon" language.
+- Use normal punctuation only: at most one exclamation or question mark per sentence. Never repeat punctuation for emphasis (no "!!!" or long runs of the same character).`;
 
 const pipeCommunityBuilder = (): PipeI => ({
 	apiKey: process.env.LANGBASE_API_KEY!,
@@ -18,7 +19,7 @@ const pipeCommunityBuilder = (): PipeI => ({
 		'Onchain Savings Club: community growth, icebreakers, and healthy norms (not financial advice).',
 	status: 'public',
 	model: 'openai:gpt-4o-mini',
-	stream: true,
+	stream: false,
 	json: false,
 	store: true,
 	moderate: true,
@@ -26,7 +27,7 @@ const pipeCommunityBuilder = (): PipeI => ({
 	max_tokens: 600,
 	temperature: 0.65,
 	presence_penalty: 0.6,
-	frequency_penalty: 0.4,
+	frequency_penalty: 0.55,
 	stop: [],
 	tool_choice: 'auto',
 	parallel_tool_calls: true,

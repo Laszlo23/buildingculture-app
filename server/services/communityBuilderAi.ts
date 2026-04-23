@@ -1,6 +1,7 @@
 import { Pipe } from "@baseai/core";
 import communityBuilderPipeFactory from "../../baseai/pipes/community-builder.ts";
 import { isAiConfigured } from "../lib/aiEnv.js";
+import { sanitizeModelReply } from "../lib/sanitizeModelText.js";
 
 function truncate(s: string, max: number) {
   const t = s.trim();
@@ -31,6 +32,7 @@ export async function runCommunityBuilderPipeUserContent(
   const result = await pipe.run({ messages: runMessages, stream: false });
   if ("stream" in result) return null;
 
-  const text = truncate(result.completion ?? "", maxOut);
-  return text || null;
+  const raw = truncate(result.completion ?? "", maxOut);
+  if (!raw) return null;
+  return sanitizeModelReply(raw);
 }
