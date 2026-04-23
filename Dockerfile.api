@@ -6,6 +6,7 @@ RUN npm ci --omit=dev && npm cache clean --force
 COPY tsconfig.json tsconfig.node.json ./
 COPY baseai ./baseai
 COPY src/contracts ./src/contracts
+COPY src/data ./src/data
 COPY server ./server
 ENV NODE_ENV=production
 EXPOSE 3001

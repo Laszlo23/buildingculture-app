@@ -8,6 +8,8 @@ export type LearningChapter = {
 export type LearningQuizQuestion = {
   prompt: string;
   options: string[];
+  /** Zero-based correct option; API grading uses this via `server/learning/quizAnswers.ts`. */
+  correctIndex: number;
 };
 
 export type LearningRouteConfig = {
@@ -61,6 +63,7 @@ export const learningRoutes: Record<LearningRouteId, LearningRouteConfig> = {
           "Only the color of the UI theme",
           "Only the user’s phone number",
         ],
+        correctIndex: 1,
       },
       {
         prompt: "Liquidity on a secondary market implies which risk is reduced for holders?",
@@ -70,6 +73,7 @@ export const learningRoutes: Record<LearningRouteId, LearningRouteConfig> = {
           "Difficulty exiting a position quickly — though spreads and rules still apply",
           "Oracle risk — oracles become unnecessary",
         ],
+        correctIndex: 2,
       },
       {
         prompt: "A primary benefit of programmable cash flows on-chain is:",
@@ -79,6 +83,7 @@ export const learningRoutes: Record<LearningRouteId, LearningRouteConfig> = {
           "Elimination of all legal agreements",
           "Free gas on every chain",
         ],
+        correctIndex: 0,
       },
       {
         prompt: "“What’s on-chain” vs “what’s marketed” — the safest stance is:",
@@ -88,6 +93,7 @@ export const learningRoutes: Record<LearningRouteId, LearningRouteConfig> = {
           "Read the contract, disclosures, and data sources — marketing can overstate control",
           "Assume the DAO owns the physical keys to every door",
         ],
+        correctIndex: 2,
       },
     ],
   },
@@ -130,6 +136,7 @@ export const learningRoutes: Record<LearningRouteId, LearningRouteConfig> = {
           "Having the highest floor price on any marketplace",
           "Being stored only in a spreadsheet",
         ],
+        correctIndex: 0,
       },
       {
         prompt: "Royalties on resales are:",
@@ -139,6 +146,7 @@ export const learningRoutes: Record<LearningRouteId, LearningRouteConfig> = {
           "Enforced by every wallet automatically",
           "Often marketplace- and standard-dependent — not universally guaranteed",
         ],
+        correctIndex: 3,
       },
       {
         prompt: "A “digital twin” in luxury goods usually means:",
@@ -148,6 +156,7 @@ export const learningRoutes: Record<LearningRouteId, LearningRouteConfig> = {
           "Any PNG on IPFS",
           "A Twitter profile picture",
         ],
+        correctIndex: 1,
       },
       {
         prompt: "NFTs as proof of authenticity fail when:",
@@ -157,6 +166,7 @@ export const learningRoutes: Record<LearningRouteId, LearningRouteConfig> = {
           "There is no credible link between issuer, item, and token lifecycle",
           "They are on Base",
         ],
+        correctIndex: 2,
       },
     ],
   },
@@ -199,6 +209,7 @@ export const learningRoutes: Record<LearningRouteId, LearningRouteConfig> = {
           "Cannot fetch arbitrary off-chain facts unless they are provided in a transaction",
           "Runs Google Search internally",
         ],
+        correctIndex: 2,
       },
       {
         prompt: "Oracle risk refers to:",
@@ -208,6 +219,7 @@ export const learningRoutes: Record<LearningRouteId, LearningRouteConfig> = {
           "Only Layer 1 block time",
           "NFT image resolution",
         ],
+        correctIndex: 1,
       },
       {
         prompt: "A blockchain’s core strength is:",
@@ -217,6 +229,7 @@ export const learningRoutes: Record<LearningRouteId, LearningRouteConfig> = {
           "Hosting unbounded private databases for free",
           "Guaranteeing off-chain facts without inputs",
         ],
+        correctIndex: 0,
       },
       {
         prompt: "A healthy mental model for “truth layer” products is:",
@@ -226,6 +239,7 @@ export const learningRoutes: Record<LearningRouteId, LearningRouteConfig> = {
           "Ignore data sources if the UI looks premium",
           "Attestations, proofs, and economic security around clearly scoped claims",
         ],
+        correctIndex: 3,
       },
     ],
   },

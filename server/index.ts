@@ -17,7 +17,7 @@ import {
   sendVaultWithdraw,
   serializeError,
 } from "./services/tx.ts";
-import { answersMatch } from "./learning/quizAnswers.js";
+import { answersMatch, quizAnswerKey } from "./learning/quizAnswers.js";
 import { buildNftBadges, buildNftEligibility } from "./services/nftEligibility.ts";
 import {
   achievementTypeForRoute,
@@ -377,8 +377,22 @@ app.post("/api/learning/complete", async (c) => {
   try {
     const body = learningCompleteBody.parse(await c.req.json());
     const addr = body.address.toLowerCase() as `0x${string}`;
-    if (!answersMatch(body.routeId as RouteId, body.answers)) {
-      return c.json({ error: { message: "Quiz answers do not match the answer key." } }, 400);
+    const rid = body.routeId as RouteId;
+    const key = quizAnswerKey[rid];
+    if (!key) {
+      return c.json({ error: { message: "Unknown learning route." } }, 400);
+    }
+    if (body.answers.length !== key.length) {
+      return c.json(
+        { error: { message: `Select exactly one answer for each of the ${key.length} questions.` } },
+        400,
+      );
+    }
+    if (!answersMatch(rid, body.answers)) {
+      return c.json(
+        { error: { message: "One or more answers are incorrect. Re-read the lesson and try again." } },
+        400,
+      );
     }
     markRouteComplete(addr, body.routeId as RouteId);
     const daoVotingReward = await tryGrantLearnRouteReward(addr, body.routeId as RouteId);

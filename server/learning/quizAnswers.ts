@@ -1,10 +1,11 @@
+import { learningRoutes } from "../../src/data/learningRoutes.ts";
 import type { RouteId } from "../services/learningStore.js";
 
-/** Correct zero-based option indices per route (must match question order in UI). */
+/** Correct zero-based option indices per route (derived from `src/data/learningRoutes.ts` so UI and API never drift). */
 export const quizAnswerKey: Record<RouteId, number[]> = {
-  rwa: [1, 2, 0, 2],
-  authenticity: [0, 3, 1, 2],
-  truth: [2, 1, 0, 3],
+  rwa: learningRoutes.rwa.quiz.map((q) => q.correctIndex),
+  authenticity: learningRoutes.authenticity.quiz.map((q) => q.correctIndex),
+  truth: learningRoutes.truth.quiz.map((q) => q.correctIndex),
 };
 
 export function answersMatch(routeId: RouteId, submitted: number[]): boolean {
