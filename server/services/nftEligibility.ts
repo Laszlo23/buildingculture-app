@@ -33,10 +33,14 @@ export async function buildNftEligibility(address: `0x${string}`) {
     for (const r of ROUTES) {
       const completed = hasCompletedRoute(address, r);
       const minted = await readHasAchievement(address, achievementTypeForRoute(r));
+      const prereqsForTruth =
+        r === "truth"
+          ? hasCompletedRoute(address, "rwa") && hasCompletedRoute(address, "authenticity")
+          : true;
       routes[r] = {
         completed,
         mintedOnChain: minted,
-        canMint: completed && !minted,
+        canMint: completed && !minted && prereqsForTruth,
       };
     }
   } else {

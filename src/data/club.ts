@@ -45,18 +45,54 @@ export const navSidebarGroups: { label: string; items: NavItem[] }[] = [
 /** Flat list for titles / lookups — same order as groups. */
 export const navItems: NavItem[] = navSidebarGroups.flatMap(g => g.items);
 
-/** Secondary links — footer (still reachable, not in main rail). */
-export const footerNavLinks: { name: string; path: string }[] = [
-  { name: "Learning hub", path: "/learn" },
-  { name: "Leaderboard", path: "/leaderboard" },
-  { name: "Invites", path: "/invites" },
-  { name: "Ecosystem thanks", path: "/ecosystem" },
-  { name: "Transparency", path: "/transparency" },
-  { name: "Contracts", path: "/contracts" },
-  { name: "Agents", path: "/agents" },
-  { name: "Backtest roadmap", path: "/strategies/backtest-roadmap" },
-  { name: "Team", path: "/team" },
+/** Footer link groups — scannable columns; every path must exist in `App.tsx`. */
+export const footerNavGroups: { label: string; links: { name: string; path: string }[] }[] = [
+  {
+    label: "Learn",
+    links: [
+      { name: "Academy", path: "/academy" },
+      { name: "Learning hub", path: "/learn" },
+      { name: "Blog", path: "/blog" },
+      { name: "Roadmap", path: "/roadmap" },
+    ],
+  },
+  {
+    label: "Participate",
+    links: [
+      { name: "DAO", path: "/dao" },
+      { name: "Community", path: "/community" },
+      { name: "Profile", path: "/profile" },
+      { name: "Leaderboard", path: "/leaderboard" },
+      { name: "Invites", path: "/invites" },
+    ],
+  },
+  {
+    label: "Trust",
+    links: [
+      { name: "Transparency", path: "/transparency" },
+      { name: "Contracts", path: "/contracts" },
+    ],
+  },
+  {
+    label: "Club",
+    links: [
+      { name: "Manifest", path: "/manifest" },
+      { name: "Ecosystem thanks", path: "/ecosystem" },
+      { name: "Team", path: "/team" },
+      { name: "Membership", path: "/membership" },
+    ],
+  },
+  {
+    label: "Builders",
+    links: [
+      { name: "Agents", path: "/agents" },
+      { name: "Backtest roadmap", path: "/strategies/backtest-roadmap" },
+    ],
+  },
 ];
+
+/** Flat list for page title lookup and backwards compatibility. */
+export const footerNavLinks: { name: string; path: string }[] = footerNavGroups.flatMap(g => g.links);
 
 /** Gamification only; financial figures come from GET /api/portfolio. */
 export const userStats = {

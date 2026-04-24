@@ -17,7 +17,8 @@ import {
   Library,
   Handshake,
 } from "lucide-react";
-import { footerNavLinks, navItems, navSidebarGroups } from "@/data/club";
+import { footerNavGroups, footerNavLinks, navItems, navSidebarGroups } from "@/data/club";
+import { CLUB_MANIFEST_FOOTER } from "@/data/clubManifest";
 import { getBlogTitleForSlug } from "@/content/blog/registry";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -50,9 +51,10 @@ function navTitleForPath(pathname: string): string | null {
   const fromFooter = footerNavLinks.find(n => n.path === pathname)?.name;
   if (fromFooter) return fromFooter;
   if (pathname.startsWith("/investor")) return "Investor profile";
-  if (pathname.startsWith("/invite/")) return "Referral";
+  if (pathname.startsWith("/invite/")) return "Invite link";
   if (pathname.startsWith("/academy/")) return "Academy";
   if (pathname === "/learn") return "Learning hub";
+  if (pathname === "/manifest") return "Manifest";
   if (pathname === "/blog") return "Blog";
   if (pathname === "/roadmap") return "Platform roadmap";
   const blogPost = /^\/blog\/([^/]+)$/.exec(pathname);
@@ -291,35 +293,68 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
           {children}
         </main>
 
-        <footer className="border-t border-border/60 px-4 sm:px-6 lg:px-10 py-5 lg:py-6 text-xs text-muted-foreground">
-          <nav
-            className="flex flex-wrap gap-x-4 gap-y-1.5 pb-3 mb-3 border-b border-border/50"
-            aria-label="More links"
-          >
-            {footerNavLinks.map(link => (
-              <Link
-                key={link.path}
-                to={link.path}
-                className="text-foreground/85 hover:text-primary transition-colors font-medium underline-offset-4 hover:underline"
-              >
-                {link.name}
-              </Link>
-            ))}
-          </nav>
+        <footer className="border-t border-border/60 px-4 sm:px-6 lg:px-10 py-6 lg:py-8 text-xs text-muted-foreground">
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:gap-10 pb-8 mb-8 border-b border-border/50">
+            <div className="space-y-3 min-w-0">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-primary/90">
+                {CLUB_MANIFEST_FOOTER.kicker}
+              </p>
+              <p className="font-display text-sm sm:text-base font-medium text-foreground leading-snug">
+                {CLUB_MANIFEST_FOOTER.headline}
+              </p>
+              <p className="text-[11px] sm:text-xs leading-relaxed text-muted-foreground">
+                {CLUB_MANIFEST_FOOTER.paragraphs[0]}
+              </p>
+              <p className="hidden sm:block text-[11px] sm:text-xs leading-relaxed text-muted-foreground/95">
+                {CLUB_MANIFEST_FOOTER.paragraphs[1]}
+              </p>
+              <Button variant="outline" size="sm" className="rounded-xl mt-1 w-fit h-8 text-xs" asChild>
+                <Link to="/manifest">Read full manifest</Link>
+              </Button>
+            </div>
+            <nav className="min-w-0" aria-label="Site map">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground mb-3">
+                Explore
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-4 gap-y-5">
+                {footerNavGroups.map(group => (
+                  <div key={group.label} className="space-y-2 min-w-0">
+                    <p className="text-[10px] font-medium uppercase tracking-wide text-foreground/70">{group.label}</p>
+                    <ul className="space-y-1.5 list-none p-0 m-0">
+                      {group.links.map(link => (
+                        <li key={link.path}>
+                          <Link
+                            to={link.path}
+                            className="text-[11px] sm:text-xs text-foreground/80 hover:text-primary transition-colors underline-offset-4 hover:underline block py-0.5"
+                          >
+                            {link.name}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </nav>
+          </div>
           <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-3">
-            <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-x-3 gap-y-1 min-w-0">
-              <span>© 2026 Onchain Savings Club DAO · Strategies on-chain where deployed</span>
+            <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-x-3 gap-y-1.5 min-w-0 text-[11px] sm:text-xs">
+              <span className="text-muted-foreground">© 2026 Onchain Savings Club DAO</span>
               <span className="hidden sm:inline text-border">|</span>
+              <span className="text-muted-foreground">Strategies on-chain where deployed · not investment advice</span>
+            </div>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 shrink-0 text-[11px]">
               <a
-                href="https://buildingculture.capital/team"
+                href="https://buildingculture.capital"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-foreground/80 hover:text-primary transition-colors underline-offset-4 hover:underline shrink-0"
+                className="text-foreground/85 hover:text-primary transition-colors underline-offset-4 hover:underline font-medium"
               >
-                buildingculture.capital
+                Building Culture
               </a>
+              <span className="text-border hidden sm:inline">·</span>
+              <span className="font-mono text-[10px] text-muted-foreground/90">v2.4.1</span>
             </div>
-            <span className="font-mono text-[10px] text-muted-foreground/90 shrink-0">v2.4.1</span>
           </div>
         </footer>
       </div>

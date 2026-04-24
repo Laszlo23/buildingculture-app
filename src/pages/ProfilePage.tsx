@@ -29,6 +29,8 @@ import { useXUserQuery } from "@/hooks/useXUser";
 import { toast } from "sonner";
 import type { MemberProfileDto } from "@/lib/api";
 import { web3BioAvatarSrc } from "@/lib/web3bioFetch";
+import { LearningBadgesStrip } from "@/components/learning/LearningBadgesStrip";
+import { SITE_TAGLINE } from "@/lib/siteTagline";
 import { FarcasterProfileCard } from "@/components/social/FarcasterProfileCard";
 import { XProfileCard } from "@/components/social/XProfileCard";
 import { XTimelineEmbed } from "@/components/social/XTimelineEmbed";
@@ -176,7 +178,7 @@ export const ProfilePage = () => {
 
   const shareUrl = useMemo(() => {
     const origin = typeof window !== "undefined" ? window.location.origin : "";
-    const text = encodeURIComponent(`Growing wealth with Onchain Savings Club ${origin}`);
+    const text = encodeURIComponent(`Onchain Savings Club — ${SITE_TAGLINE} ${origin}`);
     return `https://twitter.com/intent/tweet?text=${text}`;
   }, []);
 
@@ -265,6 +267,22 @@ export const ProfilePage = () => {
           </Button>
         </div>
       </header>
+
+      <section className="glass-card p-6 space-y-3 border border-primary/15">
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <h2 className="font-display font-semibold text-lg">Credentials & NFTs</h2>
+            <p className="text-xs text-muted-foreground mt-1 max-w-prose">
+              Soulbound learning credentials and vault patron badge — pulled from the same contract the Academy mint
+              uses.
+            </p>
+          </div>
+          <Button variant="outline" size="sm" className="rounded-xl shrink-0" asChild>
+            <Link to="/academy">Open Academy</Link>
+          </Button>
+        </div>
+        <LearningBadgesStrip showEmptyHint className="pt-1" />
+      </section>
 
       {/* Daily tasks — quest board */}
       <section className="relative overflow-hidden rounded-2xl border border-primary/20 shadow-[inset_0_1px_0_0_hsl(var(--primary)/0.08)]">

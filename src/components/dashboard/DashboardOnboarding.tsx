@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
-import { CheckCircle2, Circle } from "lucide-react";
+import { CheckCircle2, Circle, ExternalLink, PlayCircle } from "lucide-react";
+import { OnboardingVideoDialog } from "@/components/onboarding/OnboardingVideoDialog";
 import { Button } from "@/components/ui/button";
+import { BASE_APP_INVITE_URL } from "@/config/onboarding";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -28,6 +30,23 @@ export function DashboardOnboarding({ walletConnected, hasDeposit, hasYield }: P
           <p className="text-sm text-muted-foreground mt-0.5">
             Connect, fund the vault, and let DAO-governed strategies work for you.
           </p>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mt-3">
+            <OnboardingVideoDialog>
+              <Button type="button" variant="link" className="h-auto p-0 text-xs text-primary gap-1.5">
+                <PlayCircle className="h-3.5 w-3.5 shrink-0" />
+                Watch 2-min onboarding
+              </Button>
+            </OnboardingVideoDialog>
+            <span className="text-muted-foreground/50 hidden sm:inline" aria-hidden>
+              ·
+            </span>
+            <Button variant="link" className="h-auto p-0 text-xs text-primary gap-1" asChild>
+              <a href={BASE_APP_INVITE_URL} target="_blank" rel="noopener noreferrer">
+                Get Base app
+                <ExternalLink className="h-3 w-3 opacity-80" />
+              </a>
+            </Button>
+          </div>
         </div>
         <div className="text-right">
           <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Progress</div>

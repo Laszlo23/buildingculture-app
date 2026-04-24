@@ -174,7 +174,8 @@ export const learningRoutes: Record<LearningRouteId, LearningRouteConfig> = {
     id: "truth",
     path: "/academy/truth",
     title: "Settlement, Oracles & Verifiable Truth",
-    subtitle: "What blockchains prove — and what still requires trusted data.",
+    subtitle:
+      "What blockchains prove — and what still requires trusted data. Finale credential: finish RWA Scholar + Authenticity Scout first, then mint the chapter-three art.",
     nftName: "Truth Navigator",
     accent: "primary",
     chapters: [

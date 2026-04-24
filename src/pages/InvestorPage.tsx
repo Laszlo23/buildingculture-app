@@ -7,6 +7,7 @@ import { ArrowLeft, ExternalLink, Loader2, ShieldOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { LearningBadgesStrip } from "@/components/learning/LearningBadgesStrip";
 import { AchievementBadges } from "@/components/wealth/AchievementBadges";
 import { ShareWealthCard } from "@/components/wealth/ShareWealthCard";
 import { StrategyBreakdownTable } from "@/components/wealth/StrategyBreakdownTable";
@@ -143,6 +144,16 @@ export function InvestorPage() {
           </div>
         </div>
       </header>
+
+      <section className="glass-card border border-border/60 p-5 space-y-3">
+        <div>
+          <h2 className="font-display text-lg font-semibold">On-chain credentials</h2>
+          <p className="text-xs text-muted-foreground mt-1 max-w-prose">
+            Soulbound Academy NFTs and vault patron status for this wallet (same art as in-app mint previews).
+          </p>
+        </div>
+        <LearningBadgesStrip viewerAddress={d.address} />
+      </section>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {[

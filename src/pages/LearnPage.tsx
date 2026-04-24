@@ -11,6 +11,7 @@ import {
   LineChart,
   Shield,
   Sparkles,
+  TrainFront,
   Users,
   Vote,
 } from "lucide-react";
@@ -28,6 +29,14 @@ type Way = {
 };
 
 const ways: Way[] = [
+  {
+    title: "The Great Relay",
+    blurb:
+      "From Bitcoin to XRP, Polygon, BNB Smart Chain, zkSync, Arbitrum, Optimism, Base — a champion-style story of how Layer 2 culture and communities move like transit lines.",
+    to: "/learn/chain-relay",
+    icon: TrainFront,
+    accent: "gold",
+  },
   {
     title: "Web3 Academy",
     blurb: "Structured modules, XP, and seasonal tracks — start or continue your core curriculum.",
@@ -184,9 +193,25 @@ export function LearnPage() {
           Story journeys (credential paths)
         </h2>
         <p className="text-sm text-muted-foreground max-w-2xl">
-          Each journey is a few chapters plus a short quiz. Start any topic — you can pause and return later.
+          Credential paths include a short quiz and NFT mint. <strong className="text-foreground/90">The Great Relay</strong> is a
+          bonus read — pure storytelling, no quiz.
         </p>
-        <ul className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <li>
+            <Link
+              to="/learn/chain-relay"
+              className="flex h-full flex-col rounded-xl border border-gold/35 bg-gradient-to-br from-gold/[0.08] via-secondary/25 to-primary/[0.04] p-4 hover:border-gold/50 hover:shadow-[0_0_28px_-10px_hsl(var(--gold)/0.25)] transition-all"
+            >
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-gold">Story · multichain lore</span>
+              <span className="font-display font-semibold text-sm mt-1">The Great Relay</span>
+              <span className="text-xs text-muted-foreground mt-2 flex-1 leading-relaxed">
+                Bitcoin → alts → Polygon → BNB Chain → zkSync → Arbitrum &amp; Optimism → Base. Read-only, no quiz.
+              </span>
+              <span className="text-xs text-primary font-medium mt-3 inline-flex items-center gap-1">
+                Read the story <ArrowRight className="w-3.5 h-3.5" />
+              </span>
+            </Link>
+          </li>
           {learningRouteList.map(route => (
             <li key={route.id}>
               <Link

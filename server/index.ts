@@ -486,6 +486,19 @@ app.post("/api/nft/claim-learning", async (c) => {
     if (!hasCompletedRoute(addr, routeId)) {
       return c.json({ error: { message: "Complete the quiz for this route first." } }, 400);
     }
+    if (routeId === "truth") {
+      if (!hasCompletedRoute(addr, "rwa") || !hasCompletedRoute(addr, "authenticity")) {
+        return c.json(
+          {
+            error: {
+              message:
+                "Truth Navigator is the finale mint: pass RWA Scholar and Authenticity Scout quizzes first, then claim this credential.",
+            },
+          },
+          400,
+        );
+      }
+    }
     const t = achievementTypeForRoute(routeId);
     if (await readHasAchievement(addr, t)) {
       return c.json({ error: { message: "This credential was already minted for your address." } }, 400);

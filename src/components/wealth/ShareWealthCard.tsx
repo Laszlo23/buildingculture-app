@@ -1,9 +1,12 @@
 import { useCallback, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { toPng } from "html-to-image";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Download, Share2 } from "lucide-react";
-import type { WealthDto } from "@/lib/api";
+import { chainApi, type WealthDto } from "@/lib/api";
+import { learningNftImageUrlForAchievementType } from "@/lib/nftCredentialArt";
+import { SITE_TAGLINE } from "@/lib/siteTagline";
 import { WealthLineChart } from "./WealthLineChart";
 import { cn } from "@/lib/utils";
 
@@ -15,6 +18,11 @@ type Props = {
 
 export function ShareWealthCard({ data, shortAddress, className }: Props) {
   const ref = useRef<HTMLDivElement>(null);
+  const { data: nftBadges } = useQuery({
+    queryKey: ["nft", "badges", data.address] as const,
+    queryFn: () => chainApi.nftBadges(data.address),
+  });
+  const mintedCredentials = (nftBadges?.badges ?? []).filter(b => b.minted);
 
   const exportPng = useCallback(async () => {
     const el = ref.current;
@@ -66,13 +74,37 @@ export function ShareWealthCard({ data, shortAddress, className }: Props) {
             <img src="/logosavingsclub.png" alt="" className="h-10 w-auto object-contain shrink-0" width={120} height={46} />
             <div className="min-w-0">
               <p className="text-[10px] uppercase tracking-widest text-primary font-semibold">Onchain Savings Club</p>
-              <p className="font-display text-lg font-semibold truncate">{alias}</p>
+              <p className="text-[9px] font-medium text-primary/85 leading-snug mt-0.5 line-clamp-2">{SITE_TAGLINE}</p>
+              <p className="font-display text-lg font-semibold truncate mt-1">{alias}</p>
               <p className="text-xs text-muted-foreground font-mono">{shortAddress}</p>
             </div>
           </div>
-          <div className="shrink-0 rounded-xl border border-primary/40 bg-primary/10 px-3 py-1.5 text-center">
-            <p className="text-[9px] uppercase text-muted-foreground">Level</p>
-            <p className="text-sm font-semibold text-primary">{level}</p>
+          <div className="flex shrink-0 flex-col items-end gap-2">
+            <div className="rounded-xl border border-primary/40 bg-primary/10 px-3 py-1.5 text-center">
+              <p className="text-[9px] uppercase text-muted-foreground">Level</p>
+              <p className="text-sm font-semibold text-primary">{level}</p>
+            </div>
+            {mintedCredentials.length > 0 && (
+              <div className="flex flex-col items-end gap-1">
+                <p className="text-[8px] uppercase tracking-wide text-muted-foreground">Minted</p>
+                <div className="flex flex-row-reverse flex-wrap justify-end gap-1">
+                  {mintedCredentials.map(b => (
+                    <div
+                      key={b.id}
+                      title={b.name}
+                      className="h-8 w-8 overflow-hidden rounded-lg border border-primary/35 bg-secondary/30 shadow-sm"
+                    >
+                      <img
+                        src={learningNftImageUrlForAchievementType(b.achievementType)}
+                        alt={b.name}
+                        className="h-full w-full object-cover"
+                        decoding="async"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
         <div className="relative grid grid-cols-2 gap-3">

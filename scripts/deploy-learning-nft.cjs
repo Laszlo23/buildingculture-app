@@ -5,14 +5,14 @@
  * Base mainnet: npx hardhat run scripts/deploy-learning-nft.cjs --network base
  */
 
-/**
- * Default artwork for all achievement types (matches app `OSC_LEARNING_NFT_IMAGE_URL`).
- * Metadata is inline data: URIs so new deploys work without hosting JSON elsewhere.
- */
-const NFT_IMAGE = "https://buildingculture.4everbucket.com/nft.png";
+/** Academy chapter art (aligned with `src/lib/nftCredentialArt.ts`). Vault Patron keeps legacy art. */
+const LEARNING_IMAGE_1 = "https://buildingculture.4everbucket.com/learning1.png";
+const LEARNING_IMAGE_2 = "https://buildingculture.4everbucket.com/buildingcultureLearning2.png";
+const LEARNING_IMAGE_3 = "https://buildingculture.4everbucket.com/buildingcultureLearn3.png";
+const VAULT_PATRON_IMAGE = "https://buildingculture.4everbucket.com/nft.png";
 
-function metadataDataUri(name, description) {
-  const payload = JSON.stringify({ name, description, image: NFT_IMAGE });
+function metadataDataUri(name, description, image) {
+  const payload = JSON.stringify({ name, description, image });
   return `data:application/json;charset=utf-8,${encodeURIComponent(payload)}`;
 }
 
@@ -21,18 +21,22 @@ const URIS = [
   metadataDataUri(
     "RWA Scholar",
     "Tokenized real estate vs paper friction — what is actually on-chain? Soulbound Onchain Savings Club Academy credential; educational use only.",
+    LEARNING_IMAGE_1,
   ),
   metadataDataUri(
     "Authenticity Scout",
     "Sneakers, luxury, and certificates — when NFTs are proof vs promotion. Soulbound Onchain Savings Club Academy credential; educational use only.",
+    LEARNING_IMAGE_2,
   ),
   metadataDataUri(
     "Truth Navigator",
-    "What blockchains prove — and what still requires trusted data. Soulbound Onchain Savings Club Academy credential; educational use only.",
+    "Finale credential: complete RWA Scholar and Authenticity Scout first. What blockchains prove — and what still requires trusted data. Soulbound Onchain Savings Club Academy credential; educational use only.",
+    LEARNING_IMAGE_3,
   ),
   metadataDataUri(
     "Vault Patron",
     "Soulbound credential for meeting the club vault patron threshold — thank you for backing the vault. Educational use only.",
+    VAULT_PATRON_IMAGE,
   ),
 ];
 

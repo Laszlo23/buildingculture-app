@@ -27,19 +27,29 @@ export const InvitePage = () => {
 
   if (!a || !valid) {
     return (
-      <div className="min-h-[40vh] flex flex-col items-center justify-center p-6 gap-3 text-center text-sm text-destructive max-w-md mx-auto">
-        <p>That invite link is not valid. Use <span className="font-mono">/invite/0x…</span> with a full 40-hex address.</p>
-        <Button asChild variant="outline">
-          <Link to="/">Back to home</Link>
-        </Button>
+      <div className="mx-auto flex max-w-md min-h-[42vh] flex-col justify-center gap-4 p-6">
+        <div className="glass-card rounded-2xl border border-destructive/25 bg-destructive/5 p-6 text-center space-y-3">
+          <p className="text-sm text-destructive leading-relaxed">
+            That invite link is not valid. Use <span className="font-mono text-xs">/invite/0x…</span> with a full
+            40-character hex address (checksummed or lowercase).
+          </p>
+          <div className="flex flex-wrap justify-center gap-2">
+            <Button asChild variant="default" className="rounded-xl">
+              <Link to="/">Dashboard</Link>
+            </Button>
+            <Button asChild variant="outline" className="rounded-xl">
+              <Link to="/invites">Invites leaderboard</Link>
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-[50vh] flex flex-col items-center justify-center gap-2 p-6 text-sm text-muted-foreground">
-      <Loader2 className="w-6 h-6 animate-spin text-primary" />
-      Saving your invite and opening the club…
+    <div className="mx-auto flex max-w-sm min-h-[48vh] flex-col items-center justify-center gap-3 p-6 text-center">
+      <Loader2 className="w-7 h-7 animate-spin text-primary" aria-hidden />
+      <p className="text-sm text-muted-foreground">Saving your invite and opening the club…</p>
     </div>
   );
 };

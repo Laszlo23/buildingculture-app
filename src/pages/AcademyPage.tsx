@@ -1,13 +1,13 @@
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useConnection } from "wagmi";
-import { Check, Lock, BookOpen, GraduationCap, Trophy, ArrowRight, Sparkles } from "lucide-react";
+import { Check, Lock, BookOpen, GraduationCap, Trophy, ArrowRight, Sparkles, TrainFront } from "lucide-react";
 import { academyPaths } from "@/data/club";
 import { learningRouteList, type LearningRouteId } from "@/data/learningRoutes";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { chainApi } from "@/lib/api";
-import { OSC_LEARNING_NFT_IMAGE_URL } from "@/lib/nftCredentialArt";
+import { learningNftImageUrlForRoute } from "@/lib/nftCredentialArt";
 
 const colorClass = {
   primary: "border-primary/30 text-primary",
@@ -158,12 +158,12 @@ export const AcademyPage = () => {
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/15 border border-primary/35 text-primary text-xs font-medium shadow-[0_0_20px_hsl(var(--primary)/0.15)]">
                 <GraduationCap className="w-3.5 h-3.5" /> Season 3 · Live now
               </div>
-              <h2 className="font-display text-2xl font-semibold text-gradient-primary">
-                Learn Web3 wealth building, earn rewards
+              <h2 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-gradient-primary leading-tight">
+                Train hard. Mint proof.
               </h2>
               <p className="text-muted-foreground text-sm max-w-xl leading-relaxed">
-                Complete learning paths to earn OSC rewards, XP, and unlock access to higher-yield vaults reserved for
-                educated members.
+                Crush bite-size journeys, slam the quizzes, and flex soulbound credentials on Base — receipts that you
+                did the work, not just the hype. XP, rewards, and sharper vault access follow the grind.
               </p>
             </div>
             <div className="grid grid-cols-3 gap-2 text-center">
@@ -186,10 +186,10 @@ export const AcademyPage = () => {
       </section>
 
       <section className="space-y-3">
-        <h2 className="font-display text-lg font-semibold">Story journeys · earn credentials</h2>
+        <h2 className="font-display text-lg font-semibold">Story runs · soulbound receipts</h2>
         <p className="text-sm text-muted-foreground max-w-2xl">
-          Three short narratives with a checkpoint quiz. Pass to unlock a soulbound learning NFT minted by the club
-          server (gas sponsored).
+          Three tight narratives + checkpoint quiz. Pass to mint your route art on-chain (gas sponsored). Truth
+          Navigator is the finale — finish RWA + Authenticity first, then claim the chapter-three piece.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {learningRouteList.map(route => {
@@ -219,7 +219,7 @@ export const AcademyPage = () => {
                 )}
                 <div className="relative flex items-start gap-3">
                   <img
-                    src={OSC_LEARNING_NFT_IMAGE_URL}
+                    src={learningNftImageUrlForRoute(route.id)}
                     alt=""
                     className="h-11 w-11 shrink-0 rounded-lg object-cover border border-border/60 shadow-sm"
                     decoding="async"
@@ -244,6 +244,37 @@ export const AcademyPage = () => {
             );
           })}
         </div>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="font-display text-lg font-semibold">Bonus read · multichain lore</h2>
+        <p className="text-sm text-muted-foreground max-w-2xl">
+          No quiz or credential — a narrative tour from Bitcoin through XRP, Polygon, BNB Smart Chain, zkSync,
+          Arbitrum, Optimism, and how Layer 2 communities feel like transit lines. Educational only.
+        </p>
+        <Link
+          to="/learn/chain-relay"
+          className={cn(
+            "glass-card flex flex-col sm:flex-row sm:items-center gap-4 p-5 border transition-all duration-300 group overflow-hidden relative",
+            "border-gold/30 bg-gradient-to-br from-gold/[0.07] via-card/80 to-primary/[0.05]",
+            "hover:border-gold/45 hover:shadow-[0_0_40px_-12px_hsl(var(--gold)/0.28)] hover:-translate-y-0.5 motion-reduce:hover:transform-none",
+          )}
+        >
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-gold/35 bg-gold/10 text-gold shadow-[0_0_24px_hsl(var(--gold)/0.2)]">
+            <TrainFront className="h-6 w-6" aria-hidden />
+          </div>
+          <div className="min-w-0 flex-1 space-y-1">
+            <div className="font-display font-semibold text-lg leading-tight">The Great Relay</div>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              From the first block to today&apos;s L2 parade — names, vibes, and the champion energy that keeps the
+              relay moving.
+            </p>
+          </div>
+          <span className="inline-flex items-center gap-1 text-sm font-medium text-primary shrink-0">
+            Read story
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform motion-reduce:transform-none" />
+          </span>
+        </Link>
       </section>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

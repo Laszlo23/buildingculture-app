@@ -19,7 +19,7 @@ export const learningNftPerks = [
     name: "Truth Navigator",
     governanceUi: "+0.05 voting weight display multiplier (cosmetic)",
     feeMessaging: "Settlement & oracle deep-dive module unlocked",
-    other: "Profile badge · “Truth layer” explainer access",
+    other: "Profile badge · finale mint after Scholar + Scout · “Truth layer” explainer access",
   },
   {
     badgeId: "vault-patron",

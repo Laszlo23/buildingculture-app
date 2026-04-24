@@ -8,7 +8,7 @@ import heroMesh from "@/assets/hero-mesh.jpg";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
-import { SITE_TAGLINE } from "@/lib/siteTagline";
+import { SITE_TAGLINE, SITE_VAULT_SUBLINE } from "@/lib/siteTagline";
 
 const fmtMoney = (n: number) =>
   "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -75,10 +75,10 @@ export function VaultHeroPanel({
           {SITE_TAGLINE}
         </p>
         <p className="text-center text-sm text-muted-foreground mt-2 max-w-xl mx-auto leading-relaxed">
-          A simple way to grow crypto using automated on-chain strategies.
+          {SITE_VAULT_SUBLINE}
         </p>
         <p className="text-center text-xs text-muted-foreground/85 mt-1.5 max-w-lg mx-auto">
-          Deposit when you are ready — yield routes across diversified strategies.
+          Deposit when you are ready — one vault, transparent allocations, receipts on-chain.
         </p>
 
         {portfolioWarnings && portfolioWarnings.length > 0 ? (

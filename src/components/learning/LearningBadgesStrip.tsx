@@ -1,21 +1,43 @@
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useConnection } from "wagmi";
 import { chainApi } from "@/lib/api";
-import { OSC_LEARNING_NFT_IMAGE_URL } from "@/lib/nftCredentialArt";
+import { learningNftImageUrlForAchievementType } from "@/lib/nftCredentialArt";
 import { cn } from "@/lib/utils";
+
+function normalizeAddress(a: string | undefined): string | undefined {
+  if (!a) return undefined;
+  const t = a.trim();
+  if (!t) return undefined;
+  const lower = t.toLowerCase();
+  if (lower.startsWith("0x") && /^0x[a-f0-9]{40}$/.test(lower)) return lower;
+  if (/^[a-f0-9]{40}$/.test(lower)) return `0x${lower}`;
+  return undefined;
+}
 
 const qk = (addr: string | undefined) => ["nft", "badges", addr] as const;
 
-export function LearningBadgesStrip({ className }: { className?: string }) {
-  const { address, status } = useConnection();
+export type LearningBadgesStripProps = {
+  className?: string;
+  /** Load badges for this wallet (e.g. public `/investor/0x…` page). When omitted, uses the connected wallet. */
+  viewerAddress?: string;
+  /** When there are no rows yet, show a short hint instead of hiding (profile nudge). */
+  showEmptyHint?: boolean;
+};
+
+export function LearningBadgesStrip({ className, viewerAddress, showEmptyHint }: LearningBadgesStripProps) {
+  const { address: connected, status } = useConnection();
+  const target = normalizeAddress(viewerAddress) ?? (status === "connected" ? normalizeAddress(connected) : undefined);
+
   const { data, isLoading } = useQuery({
-    queryKey: qk(address),
-    queryFn: () => chainApi.nftBadges(address!),
-    enabled: status === "connected" && Boolean(address),
+    queryKey: qk(target),
+    queryFn: () => chainApi.nftBadges(target!),
+    enabled: Boolean(target),
   });
 
-  if (status !== "connected" || !address) {
+  if (!target) {
+    if (viewerAddress) return null;
     return (
       <p className={cn("text-sm text-muted-foreground", className)}>
         Connect a wallet to see learning credentials.
@@ -31,10 +53,29 @@ export function LearningBadgesStrip({ className }: { className?: string }) {
     );
   }
 
-  if (!data?.badges?.length) return null;
+  if (!data?.badges?.length) {
+    if (!showEmptyHint) return null;
+    return (
+      <p className={cn("text-sm text-muted-foreground", className)}>
+        No credential NFTs yet — finish{" "}
+        <Link to="/academy" className="text-primary underline underline-offset-2">
+          Academy
+        </Link>{" "}
+        journeys to mint soulbound receipts on Base.
+      </p>
+    );
+  }
+
+  const noneMinted = data.badges.every(b => !b.minted);
 
   return (
-    <div className={cn("flex flex-wrap gap-2", className)}>
+    <div className={cn("space-y-2", className)}>
+      {showEmptyHint && noneMinted && (
+        <p className="text-xs text-muted-foreground">
+          Nothing minted on-chain yet — crush the Academy quizzes to unlock your soulbound art.
+        </p>
+      )}
+      <div className="flex flex-wrap gap-2">
       {data.badges.map(b => (
         <div
           key={b.id}
@@ -52,7 +93,7 @@ export function LearningBadgesStrip({ className }: { className?: string }) {
             )}
           >
             <img
-              src={OSC_LEARNING_NFT_IMAGE_URL}
+              src={learningNftImageUrlForAchievementType(b.achievementType)}
               alt=""
               role="presentation"
               className="h-full w-full object-cover"
@@ -67,6 +108,7 @@ export function LearningBadgesStrip({ className }: { className?: string }) {
           )}
         </div>
       ))}
+      </div>
     </div>
   );
 }

@@ -1,9 +1,10 @@
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Check, CheckCircle2, ClipboardList, Loader2, Sparkles } from "lucide-react";
+import { ArrowLeft, Check, CheckCircle2, ClipboardList, Info, Loader2, Sparkles } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { WalletConnectButton } from "@/components/wallet/WalletConnectButton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -16,7 +17,7 @@ import {
   CredentialNftMintShowcase,
   type CredentialMintPhase,
 } from "@/components/learning/CredentialNftMintShowcase";
-import { OSC_LEARNING_NFT_IMAGE_URL } from "@/lib/nftCredentialArt";
+import { learningNftImageUrlForRoute } from "@/lib/nftCredentialArt";
 import { useConnection } from "wagmi";
 
 const qkElig = (addr: string | undefined) => ["nft", "eligibility", addr] as const;
@@ -120,6 +121,13 @@ export function LearningRoutePage() {
   const passed = routeElig?.completed;
   const minted = routeElig?.mintedOnChain;
   const canClaim = routeElig?.canMint;
+  const truthFinaleBlocked =
+    config.id === "truth" &&
+    Boolean(elig?.learningNftConfigured) &&
+    Boolean(passed) &&
+    !minted &&
+    !canClaim &&
+    (!elig?.routes?.rwa?.completed || !elig?.routes?.authenticity?.completed);
 
   const mintPhase: CredentialMintPhase = minted ? "minted" : passed ? "eligible" : "preview";
   const completedAtIso = learningProgress?.routes?.[config.id]?.completedAt;
@@ -268,7 +276,7 @@ export function LearningRoutePage() {
           ownerAddress={address}
           completedAtIso={completedAtIso}
           description={credentialDescription}
-          heroImageSrc={OSC_LEARNING_NFT_IMAGE_URL}
+          heroImageSrc={learningNftImageUrlForRoute(config.id)}
         />
       )}
 
@@ -318,6 +326,17 @@ export function LearningRoutePage() {
               </div>
             ))}
           </div>
+
+          {truthFinaleBlocked && (
+            <Alert className="rounded-xl border-primary/30 bg-primary/5">
+              <Info className="h-4 w-4" />
+              <AlertTitle>Finale mint locked</AlertTitle>
+              <AlertDescription className="text-sm">
+                Truth Navigator is the chapter-three credential. Pass the RWA Scholar and Authenticity Scout quizzes
+                first, then come back to claim this mint.
+              </AlertDescription>
+            </Alert>
+          )}
 
           <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between pt-2 border-t border-border/60">
             <WalletConnectButton />

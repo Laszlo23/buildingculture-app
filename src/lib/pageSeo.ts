@@ -1,7 +1,8 @@
+import { SITE_META_DESCRIPTION, SITE_TAGLINE } from "./siteTagline";
+
 /** Matches `index.html` defaults for SPA cleanup between routes. */
-export const DEFAULT_PAGE_TITLE = "Onchain Savings Club — AI Optimized Smart Savings on Chain";
-export const DEFAULT_PAGE_DESCRIPTION =
-  "AI optimized smart savings on chain — a community-driven DAO for diversified Web3 yield: tokenized real estate, BTC mining, AI-assisted vaults, and DeFi strategies.";
+export const DEFAULT_PAGE_TITLE = `Onchain Savings Club — ${SITE_TAGLINE}`;
+export const DEFAULT_PAGE_DESCRIPTION = SITE_META_DESCRIPTION;
 
 function siteOrigin(): string {
   const o = import.meta.env.VITE_SITE_ORIGIN?.trim();

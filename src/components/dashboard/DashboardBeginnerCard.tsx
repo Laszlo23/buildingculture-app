@@ -1,17 +1,23 @@
 import { Link } from "react-router-dom";
+import type { LucideIcon } from "lucide-react";
 import {
   ArrowRight,
   BookOpen,
   Clock,
+  Coins,
   ExternalLink,
   GraduationCap,
   HeartHandshake,
   PlayCircle,
   Shield,
   Sparkles,
+  Vault,
+  Wallet,
 } from "lucide-react";
+import { OnboardingVideoDialog } from "@/components/onboarding/OnboardingVideoDialog";
 import { Button } from "@/components/ui/button";
 import { WalletConnectButton } from "@/components/wallet/WalletConnectButton";
+import { BASE_APP_INVITE_URL } from "@/config/onboarding";
 import { getBinanceReferralUrl } from "@/config/referrals";
 import { explorerAddressUrl } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -26,15 +32,29 @@ type Props = {
 
 const beginnerSteps = [
   "What is a wallet? It is your account on Base — an address only you control.",
-  "Get a wallet: install Coinbase Wallet or use the Base app, or connect a browser wallet you already use.",
+  "Get a wallet: install the Base app on your phone, or connect a browser wallet you already use on Base.",
   "Buy crypto: purchase ETH or USDC on an exchange, then withdraw to your wallet on Base.",
   "Move funds to Base: send to your wallet address and pick the Base network when withdrawing.",
   "Deposit here: connect, open Vault, confirm one deposit transaction — yield routes after that.",
 ] as const;
 
-const vaultSteps = ["Connect wallet", "Add funds (ETH or USDC)", "Deposit into the vault"] as const;
-
-const CREATE_WALLET_URL = "https://www.coinbase.com/wallet/get-started";
+const vaultFlowSteps: readonly { icon: LucideIcon; title: string; subtitle: string }[] = [
+  {
+    icon: Wallet,
+    title: "Connect wallet",
+    subtitle: "Base app or browser wallet — stay on Base so balances match.",
+  },
+  {
+    icon: Coins,
+    title: "Add funds",
+    subtitle: "ETH for gas plus USDC (or ETH) to save. Withdraw from an exchange to Base.",
+  },
+  {
+    icon: Vault,
+    title: "Deposit to vault",
+    subtitle: "One signed transaction moves savings on-chain; strategies route after that.",
+  },
+];
 
 export function DashboardBeginnerCard({
   walletConnected,
@@ -134,21 +154,23 @@ export function DashboardBeginnerCard({
               </ol>
               <div className="flex flex-col sm:flex-row flex-wrap gap-2 pt-1">
                 <Button className="rounded-xl gap-2" size="sm" asChild>
-                  <a href={CREATE_WALLET_URL} target="_blank" rel="noopener noreferrer">
-                    Create a wallet
+                  <a href={BASE_APP_INVITE_URL} target="_blank" rel="noopener noreferrer">
+                    Get Base app
                     <ExternalLink className="h-3.5 w-3.5 opacity-80" />
                   </a>
                 </Button>
+                <OnboardingVideoDialog>
+                  <Button type="button" variant="secondary" size="sm" className="rounded-xl gap-1.5">
+                    <PlayCircle className="h-3.5 w-3.5 opacity-90" />
+                    Watch 2-min onboarding
+                  </Button>
+                </OnboardingVideoDialog>
                 <Button variant="outline" size="sm" className="rounded-xl border-border/70 gap-1.5" asChild>
                   <Link to="/learn">
                     <BookOpen className="h-3.5 w-3.5" />
                     Learn the basics
                     <ArrowRight className="h-3.5 w-3.5 opacity-70" />
                   </Link>
-                </Button>
-                <Button type="button" variant="secondary" size="sm" className="rounded-xl gap-1.5" disabled title="Short walkthrough coming soon">
-                  <PlayCircle className="h-3.5 w-3.5 opacity-70" />
-                  Watch 2-min demo
                 </Button>
               </div>
             </div>
@@ -175,17 +197,60 @@ export function DashboardBeginnerCard({
           </p>
         ) : null}
 
-        <div className="space-y-2.5">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Then in the app</p>
-          <ol className="space-y-2.5">
-            {vaultSteps.map((label, i) => (
-              <li key={label} className="flex gap-3 items-start">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-secondary/80 border border-border/60 text-xs font-semibold text-primary font-mono-num">
-                  {i + 1}
-                </span>
-                <span className="text-sm text-foreground/90 pt-0.5 leading-snug">{label}</span>
-              </li>
-            ))}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="h-px flex-1 max-w-[3rem] bg-gradient-to-r from-transparent to-primary/40" />
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary/90">Then in the app</p>
+            <div className="h-px flex-1 bg-gradient-to-l from-transparent to-primary/40" />
+          </div>
+          <ol className="grid grid-cols-1 sm:grid-cols-3 gap-3 list-none p-0 m-0">
+            {vaultFlowSteps.map((step, i) => {
+              const Icon = step.icon;
+              return (
+                <li
+                  key={step.title}
+                  className={cn(
+                    "group relative flex flex-col gap-3 rounded-2xl border p-4 text-left",
+                    "border-primary/25 bg-gradient-to-b from-secondary/50 via-card/40 to-primary/[0.04]",
+                    "shadow-[0_0_0_1px_hsl(var(--primary)/0.06),inset_0_1px_0_0_hsl(var(--primary)/0.08)]",
+                    "transition-[transform,box-shadow,border-color] duration-300 motion-reduce:transition-none",
+                    "hover:border-primary/45 hover:shadow-[0_0_28px_-8px_hsl(var(--primary)/0.35)] sm:hover:-translate-y-0.5",
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "absolute -top-px left-4 right-4 h-px rounded-full opacity-80",
+                      "bg-gradient-to-r from-transparent via-primary/55 to-transparent",
+                    )}
+                    aria-hidden
+                  />
+                  <div className="flex items-start justify-between gap-2">
+                    <div
+                      className={cn(
+                        "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl",
+                        "border border-primary/35 bg-primary/[0.12] text-primary",
+                        "shadow-[0_0_20px_-4px_hsl(var(--primary)/0.45)]",
+                        "ring-1 ring-primary/10 group-hover:ring-primary/25 transition-shadow",
+                      )}
+                    >
+                      <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+                    </div>
+                    <span
+                      className={cn(
+                        "flex h-7 min-w-[1.75rem] items-center justify-center rounded-full px-2",
+                        "bg-background/80 border border-border/60 text-[11px] font-bold font-mono-num text-primary",
+                      )}
+                    >
+                      {i + 1}
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="font-display text-sm font-semibold tracking-tight text-foreground">{step.title}</h3>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{step.subtitle}</p>
+                  </div>
+                </li>
+              );
+            })}
           </ol>
         </div>
 

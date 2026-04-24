@@ -15,6 +15,7 @@ import { ReservesPage } from "./pages/ReservesPage";
 import { PortfolioPage } from "./pages/PortfolioPage";
 import { AcademyPage } from "./pages/AcademyPage";
 import { LearnPage } from "./pages/LearnPage";
+import { ChainRelayStoryPage } from "./pages/ChainRelayStoryPage";
 import { DAOPage } from "./pages/DAOPage";
 import { CommunityPage } from "./pages/CommunityPage";
 import { MembershipPage } from "./pages/MembershipPage";
@@ -26,6 +27,7 @@ import { InvestorPage } from "./pages/InvestorPage";
 import { LeaderboardPage } from "./pages/LeaderboardPage";
 import { InvitesPage } from "./pages/InvitesPage";
 import { InvitePage } from "./pages/InvitePage";
+import { ManifestPage } from "./pages/ManifestPage";
 import { TeamPage } from "./pages/TeamPage";
 import { StrategyBacktestRoadmapPage } from "./pages/StrategyBacktestRoadmapPage";
 import { AgentsPage } from "./pages/AgentsPage";
@@ -55,9 +57,11 @@ const App = () => (
             <Route path="/strategies/:strategyId" element={wrap(<StrategyDetailPage />)} />
             <Route path="/reserves" element={wrap(<ReservesPage />)} />
             <Route path="/portfolio" element={wrap(<PortfolioPage />)} />
+            <Route path="/manifest" element={wrap(<ManifestPage />)} />
             <Route path="/transparency" element={wrap(<TransparencyPage />)} />
             <Route path="/contracts" element={wrap(<ContractsPage />)} />
             <Route path="/learn" element={wrap(<LearnPage />)} />
+            <Route path="/learn/chain-relay" element={wrap(<ChainRelayStoryPage />)} />
             <Route path="/academy" element={wrap(<AcademyPage />)} />
             <Route path="/academy/:routeId" element={wrap(<LearningRoutePage />)} />
             <Route path="/blog" element={wrap(<BlogIndexPage />)} />
@@ -75,7 +79,7 @@ const App = () => (
             <Route path="/invite/:address" element={wrap(<InvitePage />)} />
             <Route path="/team" element={wrap(<TeamPage />)} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
+            <Route path="*" element={wrap(<NotFound />)} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
