@@ -20,6 +20,7 @@ import { InviteEarnCard } from "@/components/dashboard/InviteEarnCard";
 import { ProtocolCoreFrame } from "@/components/dashboard/ProtocolCoreFrame";
 import { ClubMemberPulse } from "@/components/dashboard/ClubMemberPulse";
 import { ProtocolPulseBeacon } from "@/components/dashboard/ProtocolPulseBeacon";
+import VaultWidget from "@/components/VaultWidget";
 import { StacksStackingStrip } from "@/components/dashboard/StacksStackingStrip";
 import { strategies as staticStrategies, userStats, growthData as fallbackGrowth } from "@/data/club";
 import {
@@ -302,6 +303,8 @@ export const Dashboard = () => {
         />
         <ProtocolPulseBeacon variant="supporting" />
       </ProtocolCoreFrame>
+
+      <VaultWidget />
 
       <StacksStackingStrip compact />
 

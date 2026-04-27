@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { WagmiProvider } from "wagmi";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
@@ -55,6 +55,7 @@ const App = () => (
             <Route path="/strategies" element={wrap(<StrategiesPage />)} />
             <Route path="/strategies/backtest-roadmap" element={wrap(<StrategyBacktestRoadmapPage />)} />
             <Route path="/strategies/:strategyId" element={wrap(<StrategyDetailPage />)} />
+            <Route path="/villa" element={<Navigate to="/reserves" replace />} />
             <Route path="/reserves" element={wrap(<ReservesPage />)} />
             <Route path="/portfolio" element={wrap(<PortfolioPage />)} />
             <Route path="/manifest" element={wrap(<ManifestPage />)} />
