@@ -16,6 +16,15 @@ import {
   Milestone,
   Library,
   Handshake,
+  Trophy,
+  UserPlus,
+  Eye,
+  FileCode2,
+  ScrollText,
+  UsersRound,
+  Bot,
+  LineChart,
+  ExternalLink,
 } from "lucide-react";
 import { footerNavGroups, footerNavLinks, navItems, navSidebarGroups } from "@/data/club";
 import { CLUB_MANIFEST_FOOTER } from "@/data/clubManifest";
@@ -43,6 +52,14 @@ const iconMap = {
   Milestone,
   Library,
   Handshake,
+  Trophy,
+  UserPlus,
+  Eye,
+  FileCode2,
+  ScrollText,
+  UsersRound,
+  Bot,
+  LineChart,
 };
 
 function navTitleForPath(pathname: string): string | null {
@@ -308,8 +325,11 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
               <p className="hidden sm:block text-[11px] sm:text-xs leading-relaxed text-muted-foreground/95">
                 {CLUB_MANIFEST_FOOTER.paragraphs[1]}
               </p>
-              <Button variant="outline" size="sm" className="rounded-xl mt-1 w-fit h-8 text-xs" asChild>
-                <Link to="/manifest">Read full manifest</Link>
+              <Button variant="outline" size="sm" className="rounded-xl mt-1 w-fit h-8 text-xs gap-1.5" asChild>
+                <Link to="/manifest" className="inline-flex items-center">
+                  <ScrollText className="w-3.5 h-3.5 shrink-0" aria-hidden />
+                  Read full manifest
+                </Link>
               </Button>
             </div>
             <nav className="min-w-0" aria-label="Site map">
@@ -321,16 +341,25 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
                   <div key={group.label} className="space-y-2 min-w-0">
                     <p className="text-[10px] font-medium uppercase tracking-wide text-foreground/70">{group.label}</p>
                     <ul className="space-y-1.5 list-none p-0 m-0">
-                      {group.links.map(link => (
-                        <li key={link.path}>
-                          <Link
-                            to={link.path}
-                            className="text-[11px] sm:text-xs text-foreground/80 hover:text-primary transition-colors underline-offset-4 hover:underline block py-0.5"
-                          >
-                            {link.name}
-                          </Link>
-                        </li>
-                      ))}
+                      {group.links.map(link => {
+                        const FooterIcon = iconMap[link.icon as keyof typeof iconMap];
+                        return (
+                          <li key={link.path}>
+                            <Link
+                              to={link.path}
+                              className="group flex items-center gap-2 text-[11px] sm:text-xs text-foreground/80 hover:text-primary transition-colors underline-offset-4 hover:underline py-0.5"
+                            >
+                              {FooterIcon ? (
+                                <FooterIcon
+                                  className="w-3.5 h-3.5 shrink-0 text-muted-foreground group-hover:text-primary opacity-90"
+                                  aria-hidden
+                                />
+                              ) : null}
+                              <span>{link.name}</span>
+                            </Link>
+                          </li>
+                        );
+                      })}
                     </ul>
                   </div>
                 ))}
@@ -348,8 +377,9 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
                 href="https://buildingculture.capital"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-foreground/85 hover:text-primary transition-colors underline-offset-4 hover:underline font-medium"
+                className="inline-flex items-center gap-1.5 text-foreground/85 hover:text-primary transition-colors underline-offset-4 hover:underline font-medium"
               >
+                <ExternalLink className="w-3.5 h-3.5 shrink-0 opacity-80" aria-hidden />
                 Building Culture
               </a>
               <span className="text-border hidden sm:inline">·</span>

@@ -2,13 +2,12 @@ import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useBlock } from "wagmi";
 import type { Abi } from "viem";
-import { ArrowRight, Landmark, Loader2 } from "lucide-react";
+import { ArrowRight, Landmark, Loader2, ShoppingCart } from "lucide-react";
 import { base, baseSepolia } from "wagmi/chains";
 import { useReadContract } from "wagmi";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import curveAbiJson from "@/contracts/abis/VillaPocBondingCurve.json";
-import { getClientContractAddresses } from "@/contracts/addresses";
 import {
   useChainConfig,
   useConnectedPortfolio,
@@ -16,14 +15,11 @@ import {
   useProposals,
   useTreasury,
 } from "@/hooks/useChainData";
+import { useVillaPocBondingAddresses } from "@/hooks/useVillaPocBondingAddresses";
 import { buildClientProtocolPulse } from "@/lib/protocolPulseClient";
 import { cn } from "@/lib/utils";
 
 const curveAbi = curveAbiJson as Abi;
-
-function isValidCurveAddr(a: string | undefined): a is `0x${string}` {
-  return !!a && /^0x[a-fA-F0-9]{40}$/i.test(a);
-}
 
 const fmtUsd = (n: number) =>
   n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
@@ -69,9 +65,10 @@ export default function VaultWidget({ className }: { className?: string }) {
     vaultTvl == null &&
     (pulseQ.isLoading || (pulseQ.isError && (portQ.isLoading || !portQ.isFetched)));
 
-  const expectedChainId = Number(import.meta.env.VITE_CHAIN_ID || 8453) as typeof base.id | typeof baseSepolia.id;
-  const { villaBondingCurve } = getClientContractAddresses();
-  const curveAddr = isValidCurveAddr(villaBondingCurve) ? villaBondingCurve : undefined;
+  const { curveAddress: curveAddr, chainId: bondingChainId } = useVillaPocBondingAddresses();
+  const expectedChainId = Number(
+    bondingChainId ?? import.meta.env.VITE_CHAIN_ID ?? 8453,
+  ) as typeof base.id | typeof baseSepolia.id;
 
   const { data: totalSupply } = useReadContract({
     address: curveAddr,
@@ -100,7 +97,13 @@ export default function VaultWidget({ className }: { className?: string }) {
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-primary">
             <Landmark className="h-4 w-4" aria-hidden />
           </div>
-          <CardTitle className="text-base font-semibold tracking-tight">Vault &amp; villa curve</CardTitle>
+          <div className="min-w-0">
+            <CardTitle className="text-base font-semibold tracking-tight">Villa POC</CardTitle>
+            <p className="text-[11px] text-muted-foreground mt-0.5 font-normal leading-snug">
+              Live vault TVL and bonding-curve marginal price (curve from <code className="text-[10px]">/api/config</code>
+              {" "}first, then VITE fallbacks).
+            </p>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="px-4 pb-4 sm:px-5 space-y-3">
@@ -141,11 +144,19 @@ export default function VaultWidget({ className }: { className?: string }) {
           TVL from protocol pulse when the API is up; otherwise your wallet RPC plus portfolio API. Curve reads use{" "}
           <code className="text-[10px] text-foreground/80">marginalPriceMicro</code> at current supply — POC only; not investment advice.
         </p>
-        <Button variant="outline" size="sm" className="w-full sm:w-auto rounded-xl" asChild>
-          <Link to="/villa">
-            Villa reserves &amp; curve <ArrowRight className="ml-1 h-3.5 w-3.5" />
-          </Link>
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+          <Button size="sm" className="w-full sm:flex-1 rounded-xl gap-1.5" asChild>
+            <Link to="/villa">
+              <ShoppingCart className="h-3.5 w-3.5 shrink-0" aria-hidden />
+              Buy fractional ownership
+            </Link>
+          </Button>
+          <Button variant="outline" size="sm" className="w-full sm:w-auto rounded-xl" asChild>
+            <Link to="/villa">
+              Reserves &amp; curve details <ArrowRight className="ml-1 h-3.5 w-3.5" />
+            </Link>
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

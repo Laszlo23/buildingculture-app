@@ -45,48 +45,51 @@ export const navSidebarGroups: { label: string; items: NavItem[] }[] = [
 /** Flat list for titles / lookups — same order as groups. */
 export const navItems: NavItem[] = navSidebarGroups.flatMap(g => g.items);
 
+/** Footer link — `icon` must match a key in `AppShell` footer `iconMap`. */
+export type FooterNavLinkItem = { name: string; path: string; icon: string };
+
 /** Footer link groups — scannable columns; every path must exist in `App.tsx`. */
-export const footerNavGroups: { label: string; links: { name: string; path: string }[] }[] = [
+export const footerNavGroups: { label: string; links: FooterNavLinkItem[] }[] = [
   {
     label: "Learn",
     links: [
-      { name: "Academy", path: "/academy" },
-      { name: "Learning hub", path: "/learn" },
-      { name: "Blog", path: "/blog" },
-      { name: "Roadmap", path: "/roadmap" },
+      { name: "Academy", path: "/academy", icon: "GraduationCap" },
+      { name: "Learning hub", path: "/learn", icon: "Library" },
+      { name: "Blog", path: "/blog", icon: "BookOpen" },
+      { name: "Roadmap", path: "/roadmap", icon: "Milestone" },
     ],
   },
   {
     label: "Participate",
     links: [
-      { name: "DAO", path: "/dao" },
-      { name: "Community", path: "/community" },
-      { name: "Profile", path: "/profile" },
-      { name: "Leaderboard", path: "/leaderboard" },
-      { name: "Invites", path: "/invites" },
+      { name: "DAO", path: "/dao", icon: "Vote" },
+      { name: "Community", path: "/community", icon: "Users" },
+      { name: "Profile", path: "/profile", icon: "UserCircle" },
+      { name: "Leaderboard", path: "/leaderboard", icon: "Trophy" },
+      { name: "Invites", path: "/invites", icon: "UserPlus" },
     ],
   },
   {
     label: "Trust",
     links: [
-      { name: "Transparency", path: "/transparency" },
-      { name: "Contracts", path: "/contracts" },
+      { name: "Transparency", path: "/transparency", icon: "Eye" },
+      { name: "Contracts", path: "/contracts", icon: "FileCode2" },
     ],
   },
   {
     label: "Club",
     links: [
-      { name: "Manifest", path: "/manifest" },
-      { name: "Ecosystem thanks", path: "/ecosystem" },
-      { name: "Team", path: "/team" },
-      { name: "Membership", path: "/membership" },
+      { name: "Manifest", path: "/manifest", icon: "ScrollText" },
+      { name: "Ecosystem thanks", path: "/ecosystem", icon: "Handshake" },
+      { name: "Team", path: "/team", icon: "UsersRound" },
+      { name: "Membership", path: "/membership", icon: "Gem" },
     ],
   },
   {
     label: "Builders",
     links: [
-      { name: "Agents", path: "/agents" },
-      { name: "Backtest roadmap", path: "/strategies/backtest-roadmap" },
+      { name: "Agents", path: "/agents", icon: "Bot" },
+      { name: "Backtest roadmap", path: "/strategies/backtest-roadmap", icon: "LineChart" },
     ],
   },
 ];

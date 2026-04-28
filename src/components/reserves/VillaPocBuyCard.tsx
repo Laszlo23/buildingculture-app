@@ -14,7 +14,8 @@ import {
 import { ArrowUpRight, ExternalLink, Loader2, Settings2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { BASE_MAINNET_USDC, getClientContractAddresses } from "@/contracts/addresses";
+import { BASE_MAINNET_USDC } from "@/contracts/addresses";
+import { useVillaPocBondingAddresses } from "@/hooks/useVillaPocBondingAddresses";
 import curveAbiJson from "@/contracts/abis/VillaPocBondingCurve.json";
 import { erc20MinimalAbi } from "@/lib/erc20MinimalAbi";
 import { explorerAddressUrl } from "@/lib/api";
@@ -24,11 +25,6 @@ import { cn } from "@/lib/utils";
 const curveAbi = curveAbiJson as Abi;
 
 const ACCENT = "hsl(172 72% 48%)";
-
-function isValidCurveAddr(a: string | undefined): a is `0x${string}` {
-  if (!a) return false;
-  return /^0x[a-fA-F0-9]{40}$/.test(a);
-}
 
 function trimDisplay(n: string, maxFrac = 6) {
   const [a, b = ""] = n.split(".");
@@ -54,9 +50,11 @@ function TokenPill({ symbol, className }: { symbol: string; className?: string }
 }
 
 export function VillaPocBuyCard() {
-  const { villaBondingCurve } = getClientContractAddresses();
-  const curveAddr = isValidCurveAddr(villaBondingCurve) ? villaBondingCurve : undefined;
-  const expectedChainId = Number(import.meta.env.VITE_CHAIN_ID || 8453) as typeof base.id | typeof baseSepolia.id;
+  const { curveAddress: curveAddr, usdcAddressHint, chainId: bondingChainId } =
+    useVillaPocBondingAddresses();
+  const expectedChainId = Number(
+    bondingChainId ?? import.meta.env.VITE_CHAIN_ID ?? 8453,
+  ) as typeof base.id | typeof baseSepolia.id;
   const targetChain = expectedChainId === baseSepolia.id ? baseSepolia : base;
 
   const { address, status } = useConnection();
@@ -76,7 +74,10 @@ export function VillaPocBuyCard() {
     chainId: expectedChainId,
     query: { enabled: !!curveAddr },
   });
-  const usdcAddr = (usdcAddr_ as `0x${string}` | undefined) ?? (expectedChainId === base.id ? BASE_MAINNET_USDC : undefined);
+  const usdcAddr =
+    (usdcAddr_ as `0x${string}` | undefined) ??
+    usdcAddressHint ??
+    (expectedChainId === base.id ? BASE_MAINNET_USDC : undefined);
 
   const budgetMicro = useMemo(() => {
     try {

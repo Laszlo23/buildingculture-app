@@ -27,7 +27,8 @@
     "deploy:villa-poc:sepolia": "hardhat run scripts/deploy-villa-bonding-curve.cjs --network baseSepolia",
     "deploy:villa-poc:mainnet": "hardhat run scripts/deploy-villa-bonding-curve.cjs --network base",
     "baseai": "baseai",
-    "stacks:keeper": "tsx server/stacks/runKeeper.ts"
+    "stacks:keeper": "tsx server/stacks/runKeeper.ts",
+    "monitor:tvl": "node scripts/monitor-tvl.cjs"
   },
   "dependencies": {
     "@base-org/account": "^2.5.4",

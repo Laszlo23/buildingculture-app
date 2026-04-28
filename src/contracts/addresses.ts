@@ -1,6 +1,7 @@
 /**
  * Public addresses for display in the browser (no secrets).
- * Prefer loading from /api/config in production so a single source of truth stays on the server.
+ * Prefer `GET /api/config` in production (`useChainConfig`) so the server stays the source of truth.
+ * Villa POC curve/USDC: use `useVillaPocBondingAddresses()` — it prefers API contracts, then these `VITE_*` fallbacks.
  */
 /** Canonical USDC on Base mainnet (used as UI default; curve also exposes `usdc()`). */
 export const BASE_MAINNET_USDC = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913" as const;
